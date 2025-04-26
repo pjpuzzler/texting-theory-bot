@@ -4,14 +4,14 @@ import os
 from dataclasses import dataclass
 from typing import List
 from pilmoji import Pilmoji
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 from pilmoji.source import AppleEmojiSource
 from PIL import Image, ImageDraw, ImageFont
 from google import genai
 from google.genai import types
 from prompt import decrypt_prompt
 
-# load_dotenv()
+load_dotenv()
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -156,7 +156,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
     font = ImageFont.truetype("Arial.ttf", 14 * scale)
     pad = 12 * scale
     line_sp = 6 * scale
-    radius = 18 * scale
+    radius = 12 * scale
     badge_sz = 36 * scale
     badge_margin = 42 * scale
 
@@ -237,9 +237,10 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
 
 
 if __name__ == "__main__":
-    raw = call_llm_on_image("convo.jpeg", "", "")
+    raw = call_llm_on_image("convo2.png", "", "")
     data = json.loads(raw.removeprefix('```json\n').removesuffix('\n```'))
     elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
     color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
     msgs = parse_llm_response(data)
     render_conversation(msgs, color_data_left, color_data_right, data["color"]["background_hex"], "final_chat.png")
+    print('rendered image')
