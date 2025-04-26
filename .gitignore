@@ -7,3 +7,4 @@ reddit_storage.json
 *.txt
 !system_prompt_e.txt
 !requirements.txt
+!1024x/*.png
