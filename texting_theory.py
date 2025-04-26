@@ -148,8 +148,9 @@ def call_llm_on_image_classify(transcribe_output: str, title: str, body: str) ->
             threshold=types.HarmBlockThreshold.OFF,
         )]))
 #   print(response.__dict__)
-  classification_data = json.loads(response.text.removeprefix('```json\n').removesuffix('\n```'))
-  print(f'Classification: {classification_data}')
+  print(f'Classification: {response.text}')
+  classification_data = json.loads(response.text[response.text.index('```'):].removeprefix('```json\n').removesuffix('\n```'))
+#   print(f'Classification: {classification_data}')
   return classification_data
 
 
