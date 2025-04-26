@@ -8,3 +8,4 @@ reddit_storage.json
 !system_prompt_e.txt
 !requirements.txt
 !1024x/*.png
+__pycache__
