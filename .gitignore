@@ -5,4 +5,5 @@ test.*
 *.jpeg
 reddit_storage.json
 *.txt
-prompt.py
+!system_prompt_e.txt
+!requirements.txt

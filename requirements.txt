@@ -1,0 +1,9 @@
+praw
+requests
+Pillow
+google-genai
+sift-stack-py
+emoji==1.6.3
+pilmoji
+playwright
+cryptography

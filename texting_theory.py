@@ -11,6 +11,7 @@ from pilmoji.source import AppleEmojiSource
 from PIL import Image, ImageDraw, ImageFont
 from google import genai
 from google.genai import types
+from prompt import decrypt_prompt
 
 # load_dotenv()
 
@@ -50,21 +51,17 @@ class TextMessage:
   classification: Classification
 
 
-def prompt():
-    key = os.environ["PROMPT_KEY"]
-    key = base64.b64decode(key)  # if you stored it base64 encoded
-    encoded_prompt = "the encoded string from the repo"
-
-    decoded = base64.b64decode(encoded_prompt)
-    nonce = decoded[:16]
-    ciphertext = decoded[16:]
-
-    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
-    prompt = cipher.decrypt(ciphertext)
-    return prompt.decode()
+def load_prompt():
+    key = os.environ.get("PROMPT_KEY")
+    
+    with open("system_prompt_e.txt", "r", encoding="utf-8") as f:
+        encrypted_prompt = f.read()
+    
+    system_prompt = decrypt_prompt(encrypted_prompt, key)
+    return system_prompt
 
 
-SYSTEM_PROMPT = prompt()
+SYSTEM_PROMPT = load_prompt()
 
 
 def call_llm_on_image(image_path: str, title: str, body: str) -> str:
