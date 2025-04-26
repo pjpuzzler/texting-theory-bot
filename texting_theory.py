@@ -4,14 +4,14 @@ import os
 from dataclasses import dataclass
 from typing import List
 from pilmoji import Pilmoji
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from pilmoji.source import AppleEmojiSource
 from PIL import Image, ImageDraw, ImageFont
 from google import genai
 from google.genai import types
 from prompt import decrypt_prompt
 
-load_dotenv()
+# load_dotenv()
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
