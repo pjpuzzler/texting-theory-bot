@@ -1,8 +1,6 @@
 import enum
 import json
 import os
-import base64
-from Crypto.Cipher import AES
 from dataclasses import dataclass
 from typing import List
 from pilmoji import Pilmoji
