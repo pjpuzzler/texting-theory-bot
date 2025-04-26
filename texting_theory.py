@@ -51,32 +51,42 @@ class TextMessage:
   classification: Classification
 
 
-def load_prompt():
+def load_transcribe_prompt():
     key = os.environ.get("PROMPT_KEY")
     
-    with open("system_prompt_e.txt", "r", encoding="utf-8") as f:
+    with open("transcribe_system_prompt_e.txt", "r", encoding="utf-8") as f:
+        encrypted_prompt = f.read()
+    
+    system_prompt = decrypt_prompt(encrypted_prompt, key)
+    return system_prompt
+
+def load_classify_prompt():
+    key = os.environ.get("PROMPT_KEY")
+    
+    with open("classify_system_prompt_e.txt", "r", encoding="utf-8") as f:
         encrypted_prompt = f.read()
     
     system_prompt = decrypt_prompt(encrypted_prompt, key)
     return system_prompt
 
 
-SYSTEM_PROMPT = load_prompt()
+TRANSCRIBE_SYSTEM_PROMPT = load_transcribe_prompt()
+CLASSIFY_SYSTEM_PROMPT = load_classify_prompt()
 
-
-def call_llm_on_image(image_path: str, title: str, body: str) -> str:
-  print(f"Analyzing post with title: {title} and body: {body}")
+def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
+  print(f"Analyzing post with title: {title}")
+  print("Transcribing...")
   image = client.files.upload(file=image_path)
   response = client.models.generate_content(
       model="gemini-2.5-flash-preview-04-17",
       contents=[
           types.Part.from_text(
               text=
-              f'Here is the possibly stitched-together image, along with the title and body text (if any) of the post, which may have additional context to help inform your analysis.\n\nTitle: "{title}"\n\nBody: "{body}"'
+              f'Here is the possibly stitched-together image, along with the title and body text (if any) of the post, which may have additional context to help inform you.\n\nTitle: "{title}"\n\nBody: "{body}"'
           ),
           types.Part.from_uri(file_uri=image.uri, mime_type="image/jpeg"),
       ],
-      config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
+      config=types.GenerateContentConfig(system_instruction=TRANSCRIBE_SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
             category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
             threshold=types.HarmBlockThreshold.OFF,
         ),
@@ -97,7 +107,50 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> str:
             threshold=types.HarmBlockThreshold.OFF,
         )]))
 #   print(response.__dict__)
-  return response.text
+  transcription_data = json.loads(response.text.removeprefix('```json\n').removesuffix('\n```'))
+  print(f'Transcription: {transcription_data}')
+  if not transcription_data['is_convo']:
+     return None
+  
+  classify_data = call_llm_on_image_classify(json.dumps({'messages': transcription_data['messages'], 'additional_info': transcription_data['additional_info']}), title, body)
+  classify_data['color'] = transcription_data['color']
+  return classify_data
+
+
+def call_llm_on_image_classify(transcribe_output: str, title: str, body: str) -> dict:
+  print(f"Classifying...")
+  response = client.models.generate_content(
+      model="gemini-2.5-flash-preview-04-17",
+      contents=[
+          types.Part.from_text(
+              text=
+              f'Below is the transcription json, along with potentially additional info included in it. Also here is the title and body text (if any) of the post, which may have additional context to help inform your analysis.\n\nTitle: "{title}"\n\nBody: "{body}"\n\n{transcribe_output}'
+          )
+      ],
+      config=types.GenerateContentConfig(system_instruction=CLASSIFY_SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
+            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold=types.HarmBlockThreshold.OFF,
+        ),
+        types.SafetySetting(
+            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold=types.HarmBlockThreshold.OFF,
+        ),
+        types.SafetySetting(
+            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold=types.HarmBlockThreshold.OFF,
+        ),
+        types.SafetySetting(
+            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold=types.HarmBlockThreshold.OFF,
+        ),
+        types.SafetySetting(
+            category=types.HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY,
+            threshold=types.HarmBlockThreshold.OFF,
+        )]))
+#   print(response.__dict__)
+  classification_data = json.loads(response.text.removeprefix('```json\n').removesuffix('\n```'))
+  print(f'Classification: {classification_data}')
+  return classification_data
 
 
 def parse_llm_response(data) -> List[TextMessage]:
@@ -239,8 +292,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
 
 
 if __name__ == "__main__":
-    raw = call_llm_on_image("convo2.png", "", "")
-    data = json.loads(raw.removeprefix('```json\n').removesuffix('\n```'))
+    data = call_llm_on_image("convo2.jpeg", "", "")
     elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
     color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
     msgs = parse_llm_response(data)

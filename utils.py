@@ -314,12 +314,10 @@ def handle_new_posts():
             stitched = os.path.join(tmpdir, "stitched.jpg")
             out_path = os.path.join(tmpdir, "out.jpg")
             stitch_images_vertically(input_paths, stitched)
-            raw = call_llm_on_image(stitched, post.title or "", post.selftext
+            data = call_llm_on_image(stitched, post.title or "", post.selftext
                                     or "")
-            print(f"Got LLM response: {raw}")
-            data = json.loads(raw.removeprefix('```json\n').removesuffix('\n```'))
-            is_convo = data["is_convo"]
-            if not is_convo:
+            
+            if data is None:
                 print("Not a conversation, skipping")
             else:
                 elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
