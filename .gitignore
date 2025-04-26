@@ -1,0 +1,8 @@
+/.DS_Store
+test.*
+.env
+*.png
+*.jpeg
+reddit_storage.json
+*.txt
+prompt.py
