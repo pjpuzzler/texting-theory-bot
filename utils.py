@@ -332,6 +332,10 @@ def handle_new_posts(post_id = None):
                 render_conversation(msgs, color_data_left, color_data_right, data["color"]["background_hex"], out_path)
                 print("Rendered analysis image")
 
+                if any(c.author and c.author.name.lower() == reddit.user.me().name.lower() for c in post.comments):
+                    print("Already analyzed")
+                    continue
+
                 post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right)
 
                 # img_url = upload_image_to_imgur(out_path)
