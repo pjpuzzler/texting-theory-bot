@@ -3,7 +3,6 @@ name: TextingTheory Bot
 on:
   workflow_dispatch:
   repository_dispatch:
-    types: [new_post_detected]
 
 jobs:
   run-bot:
