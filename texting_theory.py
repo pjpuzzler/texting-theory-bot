@@ -125,7 +125,7 @@ def call_llm_on_image_classify(transcribe_output: str, title: str, body: str) ->
       contents=[
           types.Part.from_text(
               text=
-              f'Below is the transcription json, along with potentially additional info included in it. Also here is the title and body text (if any) of the post, which may have additional context to help inform your analysis.\n\nTitle: "{title}"\n\nBody: "{body}"\n\n{transcribe_output}'
+              f'Below is the transcription json, along with potentially additional info included in it. Also here is the title and body text (if any) of the post, which may have additional context to help inform your analysis. These come from the person who posted the image, not you, so do not let their opinion sway your decision one way or another, its up to you to make the final call.\n\nTitle: "{title}"\n\nBody: "{body}"\n\n{transcribe_output}'
           )
       ],
       config=types.GenerateContentConfig(system_instruction=CLASSIFY_SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
