@@ -1,9 +1,8 @@
 name: TextingTheory Bot
 
 on:
-  schedule:
-    - cron: '*/2 * * * *'
   workflow_dispatch:
+  repository_dispatch:
 
 jobs:
   run-bot:
