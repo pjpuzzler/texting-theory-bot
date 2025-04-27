@@ -274,7 +274,11 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 def handle_new_posts(post_id = None):
     # for post in get_recent_posts():
     # for post in get_top_posts():
-    for post in ([get_post_by_id(post_id)] if post_id is not None else get_recent_posts()):
+    if post_id is None:
+        posts = get_recent_posts()
+    else:
+        posts = [get_post_by_id(post_id)]
+    for post in posts:
         print(f"Looking at post {post.id}")
         # if post.id != "1k40vss":
         #     continue
