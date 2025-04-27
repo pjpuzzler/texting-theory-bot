@@ -50,7 +50,9 @@ jobs:
               ${{ runner.os }}-playwright-
     
       - name: Install Playwright Browsers
-        run: playwright install
+        run: |
+          source .venv/bin/activate
+          playwright install
 
       - name: Install system dependencies for Playwright
         run: |
@@ -70,4 +72,6 @@ jobs:
           echo "${{ secrets.REDDIT_STORAGE_B64 }}" | base64 -d > reddit_storage.json
 
       - name: Run the bot
-        run: xvfb-run -a python main.py
+        run: |
+          source .venv/bin/activate
+          xvfb-run -a python main.py
