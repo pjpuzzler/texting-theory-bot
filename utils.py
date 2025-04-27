@@ -271,7 +271,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         browser.close()
 
 
-def handle_new_posts(post_id):
+def handle_new_posts(post_id = None):
     # for post in get_recent_posts():
     # for post in get_top_posts():
     for post in ([get_post_by_id(post_id)] if post_id is not None else get_recent_posts()):
