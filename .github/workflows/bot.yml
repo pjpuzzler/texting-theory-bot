@@ -3,6 +3,7 @@ name: TextingTheory Bot
 on:
   workflow_dispatch:
   repository_dispatch:
+    types: [new_post_detected]
 
 jobs:
   run-bot:
@@ -17,6 +18,7 @@ jobs:
       GEMINI_API_KEY_ALT: ${{ secrets.GEMINI_API_KEY_ALT }}
       IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
       PROMPT_KEY: ${{ secrets.PROMPT_KEY }}
+      POST_ID: ${{ github.event.client_payload.post_id }}
 
     steps:
       - name: Checkout repo
