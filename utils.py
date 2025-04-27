@@ -36,7 +36,7 @@ def get_recent_posts():
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(minutes=360)
     return [
-        post for post in reddit.subreddit("TextingTheory").new(limit=10)
+        post for post in reddit.subreddit("TextingTheory").new(limit=3)
         # if datetime.fromtimestamp(post.created_utc, tz=timezone.utc) > cutoff
     ]
 
