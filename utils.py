@@ -288,7 +288,7 @@ def handle_new_posts():
         image_urls = []
         if hasattr(post, "post_hint") and post.post_hint == "image":
             image_urls = [post.url]
-        elif hasattr(post, "media_metadata"):
+        elif hasattr(post, "gallery_data") and hasattr(post, 'media_metadata'):
             for item in post.gallery_data["items"]:
                 u = post.media_metadata[item["media_id"]]["s"]["u"].replace(
                     "&amp;", "&")
