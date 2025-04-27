@@ -120,7 +120,8 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
 def call_llm_on_image_classify(transcribe_output: str, title: str, body: str) -> dict:
   print(f"Classifying...")
   response = client.models.generate_content(
-      model="gemini-2.5-pro-exp-03-25",
+    #   model="gemini-2.5-pro-exp-03-25",
+      model="gemini-2.5-flash-preview-04-17",
       contents=[
           types.Part.from_text(
               text=
