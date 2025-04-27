@@ -36,7 +36,7 @@ def get_recent_posts():
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(minutes=360)
     return [
-        post for post in reddit.subreddit("TextingTheory").new(limit=1)
+        post for post in reddit.subreddit("TextingTheory").new(limit=5)
         # if datetime.fromtimestamp(post.created_utc, tz=timezone.utc) > cutoff
     ]
 
@@ -274,7 +274,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 def handle_new_posts(post_id):
     # for post in get_recent_posts():
     # for post in get_top_posts():
-    for post in [get_post_by_id(post_id)]:
+    for post in ([get_post_by_id(post_id)] if post_id is not None else get_recent_posts()):
         print(f"Looking at post {post.id}")
         # if post.id != "1k40vss":
         #     continue
