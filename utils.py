@@ -244,7 +244,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("About the Bot", delay=5)
+        page.keyboard.type("About the bot", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
