@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List
 from pilmoji import Pilmoji
 from pilmoji.source import AppleEmojiSource
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 from google import genai
 from google.genai import types
 from prompt import decrypt_prompt
@@ -50,6 +50,7 @@ class TextMessage:
   side: str
   content: str
   classification: Classification
+  unsent: bool = False
 
 def load_system_prompt():
     key = os.environ.get("PROMPT_KEY")
@@ -67,6 +68,7 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
   image = client.files.upload(file=image_path)
   response = client.models.generate_content(
       model="gemini-2.5-pro-exp-03-25",
+    #   model="gemini-2.5-flash-preview-04-17",
       contents=[
           types.Part.from_text(
               text=
@@ -108,6 +110,7 @@ def parse_llm_response(data) -> List[TextMessage]:
             side=item["side"],
             content=item["content"],
             classification=classification,
+            unsent=item.get("unsent", False)
         ))
   return msgs
 
@@ -149,6 +152,17 @@ def wrap_text(text, draw, font, max_width):
     return "\n".join(lines)
 
 
+def hex_to_rgba(hex_str, alpha_factor=1.0):
+    hex_str = hex_str.lstrip('#')
+    if len(hex_str) == 6:
+        r, g, b = (int(hex_str[i:i+2], 16) for i in (0, 2, 4))
+    elif len(hex_str) == 3:
+        r, g, b = (int(hex_str[i]*2, 16) for i in range(3))
+    else:
+        raise ValueError("Invalid hex color")
+    a = int(255 * alpha_factor)
+    return (r, g, b, a)
+
 def render_conversation(messages: list[TextMessage], color_data_left, color_data_right, background_hex, output_path="output.png"):
     base_w = 320
     scale = 4
@@ -157,7 +171,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
     font = ImageFont.truetype("Arial.ttf", 14 * scale)
     pad = 12 * scale
     line_sp = 6 * scale
-    radius = 12 * scale
+    radius = 16 * scale
     badge_sz = 36 * scale
     badge_margin = 42 * scale
 
@@ -171,7 +185,6 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
             txt = wrap_text(m.content, dd, font, max_bubble_w - 2 * pad)
             wrapped.append(txt)
             w, h = pilmoji.getsize(txt, font=font, spacing=line_sp)
-            # w, h = bb[2] - bb[0], bb[3] - bb[1]
             dims.append((w, h))
 
     total_h = pad
@@ -182,59 +195,75 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
             next_spacing = pad // 4 if messages[i + 1].side == messages[i].side else pad
             total_h += next_spacing
     total_h += pad
-    img = Image.new("RGB", (img_w, total_h), background_hex)
+
+    bg_rgba = ImageColor.getcolor(background_hex, "RGBA")
+    
+    img_bg = Image.new("RGBA", (img_w, total_h), bg_rgba)
+    
+    bubble_layer = Image.new("RGBA", (img_w, total_h), (0, 0, 0, 0))
+
+    
+    text_drawings = []
 
     y = pad
-    text_offset = int(2 * scale)
+    text_offset = int(0 * scale)
     for i, (m, txt, (w, h)) in enumerate(zip(messages, wrapped, dims)):
         bw = w + 2 * pad
         bh = h + 2 * pad
         if m.side == "left":
             x0 = pad
             badge_x = x0 + bw - badge_sz + badge_margin
-            color = color_data_left["bubble_hex"]
+            bubble_color = color_data_left["bubble_hex"]
+            text_hex = color_data_left["text_hex"]
         else:
             x0 = img_w - bw - pad
             badge_x = x0 - badge_margin
-            color = color_data_right["bubble_hex"]
+            bubble_color = color_data_right["bubble_hex"]
+            text_hex = color_data_right["text_hex"]
+
         x1, y1 = x0 + bw, y + bh
 
-        draw = ImageDraw.Draw(img)
+        
+        opacity = 0.8 if m.unsent else 1.0
+        bubble_rgba = hex_to_rgba(bubble_color, opacity)
+        bubble_draw = ImageDraw.Draw(bubble_layer)
         if m.side == "left":
             tail = [(x0 + 2 * scale, y + bh - 16 * scale),
                     (x0 - 6 * scale, y + bh),
                     (x0 + 10 * scale, y + bh - 4 * scale)]
-            draw.polygon(tail, fill=color)
-            text_hex = color_data_left["text_hex"]
+            bubble_draw.polygon(tail, fill=bubble_rgba)
         else:
             tail = [(x1 - 2 * scale, y + bh - 16 * scale),
                     (x1 + 6 * scale, y + bh),
                     (x1 - 10 * scale, y + bh - 4 * scale)]
-            draw.polygon(tail, fill=color)
-            text_hex = color_data_right["text_hex"]
-        draw.rounded_rectangle((x0, y, x1, y1), radius, fill=color)
+            bubble_draw.polygon(tail, fill=bubble_rgba)
+        bubble_draw.rounded_rectangle((x0, y, x1, y1), radius, fill=bubble_rgba)
 
-        with Pilmoji(img, source=AppleEmojiSource) as pilmoji:
-            pilmoji.text(
-                (x0 + pad, y + pad - text_offset),
-                txt,
-                font=font,
-                fill=text_hex,
-                spacing=line_sp,
-                emoji_scale_factor=1.3,
-                emoji_position_offset=(-10 if m.side == "left" else 10, 0)
-            )
+        
+        text_drawings.append(((x0 + pad, y + pad - text_offset), txt, font, text_hex, line_sp, -10 if m.side=="left" else 10))
 
         badge = Image.open(
             m.classification.png_path("white" if m.side == "right" else "black")
         ).resize((badge_sz, badge_sz))
+        if badge.mode != 'RGBA':
+            badge = badge.convert('RGBA')
+        if m.unsent:
+            badge.putalpha(badge.getchannel('A').point(lambda x: int(x * 0.8)))
         by = y + (bh - badge_sz) // 2
-        img.paste(badge, (badge_x, by), badge)
+        img_bg.paste(badge, (badge_x, by), badge)
 
         spacing = pad // 4 if (i < len(messages) - 1 and messages[i + 1].side == m.side) else pad
         y += bh + spacing
 
-    img.save(output_path)
+    
+    composite_img = Image.alpha_composite(img_bg, bubble_layer)
+    
+    with Pilmoji(composite_img, source=AppleEmojiSource) as pilmoji:
+        for pos, t, f, col, sp, offs in text_drawings:
+            pilmoji.text(pos, t, font=f, fill=col, spacing=sp, emoji_scale_factor=1.3, emoji_position_offset=(offs, 0))
+
+    final_img = composite_img.convert("RGB")
+    final_img.save(output_path)
 
 
 if __name__ == "__main__":
