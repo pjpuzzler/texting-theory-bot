@@ -177,7 +177,19 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
             table_actions_button.scroll_into_view_if_needed()
             page.wait_for_timeout(200)
             insert_row_button.click()
-        
+
+        table_actions_button = page.locator('button:has(svg[icon-name="overflow-horizontal-outline"]) >> text=Table actions menu')
+        table_actions_button.wait_for(state="visible", timeout=5000)
+        table_actions_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(200)
+        table_actions_button.click()
+
+        align_center_button = page.get_by_text("Align center", exact=True)
+        align_center_button.wait_for(state="visible", timeout=5000)
+        table_actions_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(200)
+        align_center_button.click()
+
         page.wait_for_timeout(200)
 
         page.keyboard.type("a")
@@ -189,8 +201,48 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
             page.keyboard.type(f'{color_left} ({elo_left})', delay=10)
         page.keyboard.press("Tab")
         page.wait_for_timeout(50)
+
+        table_actions_button = page.locator('button:has(svg[icon-name="overflow-horizontal-outline"]) >> text=Table actions menu')
+        table_actions_button.wait_for(state="visible", timeout=5000)
+        table_actions_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(200)
+        table_actions_button.click()
+
+        align_center_button = page.get_by_text("Align center", exact=True)
+        align_center_button.wait_for(state="visible", timeout=5000)
+        table_actions_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(200)
+        align_center_button.click()
+
+        page.wait_for_timeout(200)
+
+        page.keyboard.type("a")
+        page.wait_for_timeout(200)
+        page.keyboard.press("Backspace")
+        page.wait_for_timeout(100)
+
         page.keyboard.press("Tab")
         page.wait_for_timeout(50)
+
+        table_actions_button = page.locator('button:has(svg[icon-name="overflow-horizontal-outline"]) >> text=Table actions menu')
+        table_actions_button.wait_for(state="visible", timeout=5000)
+        table_actions_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(200)
+        table_actions_button.click()
+
+        align_center_button = page.get_by_text("Align center", exact=True)
+        align_center_button.wait_for(state="visible", timeout=5000)
+        table_actions_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(200)
+        align_center_button.click()
+
+        page.wait_for_timeout(200)
+
+        page.keyboard.type("a")
+        page.wait_for_timeout(200)
+        page.keyboard.press("Backspace")
+        page.wait_for_timeout(100)
+
         if color_right is not None and has_message[1]:
             page.keyboard.type(f'{color_right} ({elo_right})', delay=10)
         page.keyboard.press("Tab")
