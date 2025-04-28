@@ -97,6 +97,7 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
             threshold=types.HarmBlockThreshold.OFF,
         )]))
 #   print(response.__dict__)
+  print(f'Result: {response.text}')
   data = json.loads(response.text.removeprefix('```json\n').removesuffix('\n```'))
   return data
 
