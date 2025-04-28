@@ -268,7 +268,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
 
 
 if __name__ == "__main__":
-    data = call_llm_on_image("convo2.jpeg", "", "")
+    data = call_llm_on_image("convo.jpeg", "", "")
     elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
     color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
     msgs = parse_llm_response(data)
