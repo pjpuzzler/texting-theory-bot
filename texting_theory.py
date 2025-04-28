@@ -1,6 +1,7 @@
 import enum
 import json
 import os
+import random
 from dataclasses import dataclass
 from typing import List
 from pilmoji import Pilmoji
@@ -15,7 +16,7 @@ from prompt import decrypt_prompt
 # load_dotenv()
 
 
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY_ALT_2"])
+client = genai.Client(api_key=os.environ[["GEMINI_API_KEY", "GEMINI_API_KEY_ALT", "GEMINI_API_KEY_ALT_2"][random.randint(0, 2)]])
 
 
 class Classification(enum.Enum):
@@ -50,43 +51,30 @@ class TextMessage:
   content: str
   classification: Classification
 
-
-def load_transcribe_prompt():
+def load_system_prompt():
     key = os.environ.get("PROMPT_KEY")
     
-    with open("transcribe_system_prompt_e.txt", "r", encoding="utf-8") as f:
-        encrypted_prompt = f.read()
-    
-    system_prompt = decrypt_prompt(encrypted_prompt, key)
-    return system_prompt
-
-def load_classify_prompt():
-    key = os.environ.get("PROMPT_KEY")
-    
-    with open("classify_system_prompt_e.txt", "r", encoding="utf-8") as f:
+    with open("system_prompt_e.txt", "r", encoding="utf-8") as f:
         encrypted_prompt = f.read()
     
     system_prompt = decrypt_prompt(encrypted_prompt, key)
     return system_prompt
 
 
-TRANSCRIBE_SYSTEM_PROMPT = load_transcribe_prompt()
-CLASSIFY_SYSTEM_PROMPT = load_classify_prompt()
+SYSTEM_PROMPT = load_system_prompt()
 
 def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
-  print(f"Analyzing post with title: {title}")
-  print("Transcribing...")
   image = client.files.upload(file=image_path)
   response = client.models.generate_content(
-      model="gemini-2.5-flash-preview-04-17",
+      model="gemini-2.5-pro-exp-03-25",
       contents=[
           types.Part.from_text(
               text=
-              f'Here is the possibly stitched-together image, along with the title and body text (if any) of the post, which may have additional context to help inform you.\n\nTitle: "{title}"\n\nBody: "{body}"'
+              f'Here is the possibly stitched-together image, along with the title and body text (if any) of the post, which may have additional context to help inform you.\n\nTitle: {title}\nBody: {body}'
           ),
           types.Part.from_uri(file_uri=image.uri, mime_type="image/jpeg"),
       ],
-      config=types.GenerateContentConfig(system_instruction=TRANSCRIBE_SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
+      config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
             category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
             threshold=types.HarmBlockThreshold.OFF,
         ),
@@ -107,52 +95,8 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
             threshold=types.HarmBlockThreshold.OFF,
         )]))
 #   print(response.__dict__)
-  transcription_data = json.loads(response.text.removeprefix('```json\n').removesuffix('\n```'))
-  print(f'Transcription: {transcription_data}')
-  if not transcription_data['is_convo']:
-     return None
-  
-  classify_data = call_llm_on_image_classify(json.dumps({'messages': transcription_data['messages'], 'additional_info': transcription_data['additional_info']}), title, body)
-  classify_data['color'] = transcription_data['color']
-  return classify_data
-
-
-def call_llm_on_image_classify(transcribe_output: str, title: str, body: str) -> dict:
-  print(f"Classifying...")
-  response = client.models.generate_content(
-      model="gemini-2.5-pro-exp-03-25",
-    #   model="gemini-2.5-flash-preview-04-17",
-      contents=[
-          types.Part.from_text(
-              text=
-              f'Below is the transcription json, along with potentially additional info included in it. Also here is the title and body text (if any) of the post, which may have additional context to help inform your analysis. These come from the person who posted the image, not you, so do not let their opinion sway your decision one way or another, its up to you to make the final call.\n\nTitle: "{title}"\n\nBody: "{body}"\n\n{transcribe_output}'
-          )
-      ],
-      config=types.GenerateContentConfig(system_instruction=CLASSIFY_SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
-            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold=types.HarmBlockThreshold.OFF,
-        ),
-        types.SafetySetting(
-            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold=types.HarmBlockThreshold.OFF,
-        ),
-        types.SafetySetting(
-            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold=types.HarmBlockThreshold.OFF,
-        ),
-        types.SafetySetting(
-            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold=types.HarmBlockThreshold.OFF,
-        ),
-        types.SafetySetting(
-            category=types.HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY,
-            threshold=types.HarmBlockThreshold.OFF,
-        )]))
-#   print(response.__dict__)
-  print(f'Classification: {response.text}')
-  classification_data = json.loads(response.text[response.text.index('```'):].removeprefix('```json\n').removesuffix('\n```'))
-#   print(f'Classification: {classification_data}')
-  return classification_data
+  data = json.loads(response.text.removeprefix('```json\n').removesuffix('\n```'))
+  return data
 
 
 def parse_llm_response(data) -> List[TextMessage]:

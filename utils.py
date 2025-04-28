@@ -300,12 +300,13 @@ def handle_new_posts(post_id = None):
             stitched = os.path.join(tmpdir, "stitched.jpg")
             out_path = os.path.join(tmpdir, "out.jpg")
             stitch_images_vertically(input_paths, stitched)
-            data = call_llm_on_image(stitched, post.title or "", post.selftext
-                                    or "")
+            print(f'Analyzing post with title: {post.title}')
+            data = call_llm_on_image(stitched, post.title, post.selftext)
             
-            if data is None:
+            if data.get("is_convo") is False:
                 print("Not a conversation, skipping")
             else:
+                print(f'Result: {data}')
                 elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
                 color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
                 msgs = parse_llm_response(data)

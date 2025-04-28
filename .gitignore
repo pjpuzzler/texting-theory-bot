@@ -5,8 +5,7 @@ test.*
 *.jpeg
 reddit_storage.json
 *.txt
-!classify_system_prompt_e.txt
-!transcribe_system_prompt_e.txt
+!system_prompt_e.txt
 !requirements.txt
 !1024x/*.png
 __pycache__
