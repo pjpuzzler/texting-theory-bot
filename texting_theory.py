@@ -225,7 +225,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         x1, y1 = x0 + bw, y + bh
 
         
-        opacity = 0.67 if m.unsent else 1.0
+        opacity = 1 if m.unsent else 1.0
         bubble_rgba = hex_to_rgba(bubble_color, opacity)
         bubble_draw = ImageDraw.Draw(bubble_layer)
         if m.side == "left":
@@ -249,7 +249,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         if badge.mode != 'RGBA':
             badge = badge.convert('RGBA')
         if m.unsent:
-            badge.putalpha(badge.getchannel('A').point(lambda x: int(x * 0.67)))
+            badge.putalpha(badge.getchannel('A').point(lambda x: int(x * 1)))
         by = y + (bh - badge_sz) // 2
         img_bg.paste(badge, (badge_x, by), badge)
 
