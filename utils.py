@@ -165,7 +165,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.wait_for_timeout(250)
         table_button.click()
 
-        for _ in range(10):
+        for _ in range(8):
             table_actions_button = page.locator('button:has(svg[icon-name="overflow-horizontal-outline"]) >> text=Table actions menu')
             table_actions_button.wait_for(state="visible", timeout=5000)
             table_actions_button.scroll_into_view_if_needed()
@@ -186,32 +186,13 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.wait_for_timeout(100)
 
         if color_left is not None and has_message[0]:
-            page.keyboard.type(color_left, delay=10)
+            page.keyboard.type(f'{color_left} ({elo_left})', delay=10)
         page.keyboard.press("Tab")
         page.wait_for_timeout(50)
         page.keyboard.press("Tab")
         page.wait_for_timeout(50)
         if color_right is not None and has_message[1]:
-            page.keyboard.type(color_right, delay=10)
-        page.keyboard.press("Tab")
-        page.wait_for_timeout(50)
-
-        if color_left is not None and has_message[0]:
-            page.keyboard.type(str(elo_left), delay=10)
-        page.keyboard.press("Tab")
-        page.wait_for_timeout(50)
-        page.keyboard.type("Elo (est.)", delay=10)
-        page.keyboard.press("Tab")
-        page.wait_for_timeout(50)
-        if color_right is not None and has_message[1]:
-            page.keyboard.type(str(elo_right), delay=10)
-        page.keyboard.press("Tab")
-        page.wait_for_timeout(50)
-
-        page.keyboard.press("Tab")
-        page.wait_for_timeout(50)
-        page.keyboard.press("Tab")
-        page.wait_for_timeout(50)
+            page.keyboard.type(f'{color_right} ({elo_right})', delay=10)
         page.keyboard.press("Tab")
         page.wait_for_timeout(50)
 
