@@ -174,7 +174,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
             insert_row_button = page.get_by_text("Insert row below", exact=True)
             insert_row_button.wait_for(state="visible", timeout=5000)
-            table_actions_button.scroll_into_view_if_needed()
+            insert_row_button.scroll_into_view_if_needed()
             page.wait_for_timeout(200)
             insert_row_button.click()
 
@@ -186,7 +186,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         align_center_button = page.get_by_text("Align center", exact=True)
         align_center_button.wait_for(state="visible", timeout=5000)
-        table_actions_button.scroll_into_view_if_needed()
+        align_center_button.scroll_into_view_if_needed()
         page.wait_for_timeout(200)
         align_center_button.click()
 
@@ -210,7 +210,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         align_center_button = page.get_by_text("Align center", exact=True)
         align_center_button.wait_for(state="visible", timeout=5000)
-        table_actions_button.scroll_into_view_if_needed()
+        align_center_button.scroll_into_view_if_needed()
         page.wait_for_timeout(200)
         align_center_button.click()
 
@@ -232,7 +232,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         align_center_button = page.get_by_text("Align center", exact=True)
         align_center_button.wait_for(state="visible", timeout=5000)
-        table_actions_button.scroll_into_view_if_needed()
+        align_center_button.scroll_into_view_if_needed()
         page.wait_for_timeout(200)
         align_center_button.click()
 
