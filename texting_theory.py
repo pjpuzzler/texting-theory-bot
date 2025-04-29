@@ -218,24 +218,24 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         if m.unsent:
             if m.side == "left":
                 center_big = (x0 + 5 * scale, y1 - 5 * scale)
-                big_rad = 8 * scale
+                big_rad = 7 * scale
                 bbox_big = (center_big[0] - big_rad, center_big[1] - big_rad,
                             center_big[0] + big_rad, center_big[1] + big_rad)
                 bubble_draw.ellipse(bbox_big, fill=bubble_color)
                 
-                center_small = (x0 - 5 * scale, y1 + 5 * scale)
+                center_small = (x0 - 4 * scale, y1 + 4 * scale)
                 small_rad = 4 * scale
                 bbox_small = (center_small[0] - small_rad, center_small[1] - small_rad,
                             center_small[0] + small_rad, center_small[1] + small_rad)
                 bubble_draw.ellipse(bbox_small, fill=bubble_color)
             else:
                 center_big = (x1 - 5 * scale, y1 - 5 * scale)
-                big_rad = 8 * scale
+                big_rad = 7 * scale
                 bbox_big = (center_big[0] - big_rad, center_big[1] - big_rad,
                             center_big[0] + big_rad, center_big[1] + big_rad)
                 bubble_draw.ellipse(bbox_big, fill=bubble_color)
                 
-                center_small = (x1 + 5 * scale, y1 + 5 * scale)
+                center_small = (x1 + 4 * scale, y1 + 4 * scale)
                 small_rad = 4 * scale
                 bbox_small = (center_small[0] - small_rad, center_small[1] - small_rad,
                             center_small[0] + small_rad, center_small[1] + small_rad)
