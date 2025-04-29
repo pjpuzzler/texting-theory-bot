@@ -8,7 +8,7 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright/python:v1.43.1-focal
+      image: mcr.microsoft.com/playwright/python:v1.43.1-jammy
 
     env:
       REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
@@ -25,13 +25,26 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-    
-      - name: Set up virtualenv and install dependencies
+
+      - name: Set up Python virtualenv and install dependencies
         run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
-    
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright Browsers
+        run: |
+          source .venv/bin/activate
+          playwright install
+
       - name: Restore Reddit session
         run: |
           echo "${{ secrets.REDDIT_STORAGE_B64 }}" | base64 -d > reddit_storage.json
