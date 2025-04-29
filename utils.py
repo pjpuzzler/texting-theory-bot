@@ -94,7 +94,7 @@ def format_counts(messages, color_left, color_right, elo_left, elo_right):
     return "\n".join(lines)
 
 
-def post_comment_image(post_id, file_path, messages, color_left, color_right, elo_left, elo_right):
+def post_comment_image(post_id, file_path, messages, color_left, color_right, elo_left, elo_right, opening):
     counts = {c: [0, 0] for c in HUMANIZED_ORDER}
     has_message = [False, False]
     for m in messages:
@@ -142,8 +142,10 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.keyboard.type("Game Review", delay=10)
         page.keyboard.press("Enter")
 
+        page.wait_for_timeout(50)
+
         image_button = page.locator('button:has(svg[icon-name="image-post-outline"])')
-        image_button.wait_for(state="visible", timeout=10000)
+        image_button.wait_for(state="visible", timeout=5000)
 
         with page.expect_file_chooser() as fc_info:
             image_button.scroll_into_view_if_needed()
@@ -157,7 +159,10 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.wait_for_timeout(100)
 
+        page.keyboard.type(f"[Beta] - {opening}", delay=10)
         page.keyboard.press("Enter")
+
+        page.wait_for_timeout(50)
 
         table_button = page.locator('button:has(svg[icon-name="table-outline"])')
         table_button.wait_for(state="visible", timeout=5000)
@@ -369,7 +374,7 @@ def handle_new_posts(post_id = None):
                     print("Already analyzed")
                     continue
 
-                post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right)
+                post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right, data.get("opening"))
 
                 # img_url = upload_image_to_imgur(out_path)
                 # print("Successfully uploaded to imgur")
