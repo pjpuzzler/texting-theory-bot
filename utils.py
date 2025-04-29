@@ -136,6 +136,9 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         # bold_button.scroll_into_view_if_needed()
         # page.wait_for_timeout(100)
         # bold_button.click()
+        
+        page.wait_for_timeout(100)
+
         page.keyboard.press("Control+B")
 
         page.wait_for_timeout(100)
