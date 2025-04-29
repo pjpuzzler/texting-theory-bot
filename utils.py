@@ -131,11 +131,12 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.wait_for_timeout(100)
         formatting_button.click()
 
-        bold_button = page.locator('button:has(svg[icon-name="bold-outline"])')
-        bold_button.wait_for(state="visible", timeout=5000)
-        bold_button.scroll_into_view_if_needed()
-        page.wait_for_timeout(100)
-        bold_button.click()
+        # bold_button = page.locator('button:has(svg[icon-name="bold-outline"])')
+        # bold_button.wait_for(state="visible", timeout=5000)
+        # bold_button.scroll_into_view_if_needed()
+        # page.wait_for_timeout(100)
+        # bold_button.click()
+        page.keyboard.press("Control+B")
 
         page.wait_for_timeout(100)
 
@@ -156,6 +157,10 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         
         file_chooser = fc_info.value
         file_chooser.set_files(file_path)
+
+        page.wait_for_timeout(100)
+
+        page.keyboard.press("Control+I")
 
         page.wait_for_timeout(100)
 
