@@ -153,17 +153,6 @@ def wrap_text(text, draw, font, max_width):
     return "\n".join(lines)
 
 
-def hex_to_rgba(hex_str, alpha_factor=1.0):
-    hex_str = hex_str.lstrip('#')
-    if len(hex_str) == 6:
-        r, g, b = (int(hex_str[i:i+2], 16) for i in (0, 2, 4))
-    elif len(hex_str) == 3:
-        r, g, b = (int(hex_str[i]*2, 16) for i in range(3))
-    else:
-        raise ValueError("Invalid hex color")
-    a = int(255 * alpha_factor)
-    return (r, g, b, a)
-
 def render_conversation(messages: list[TextMessage], color_data_left, color_data_right, background_hex, output_path="output.png"):
     base_w = 320
     scale = 4
@@ -225,19 +214,43 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         x1, y1 = x0 + bw, y + bh
 
         
-        opacity = 0.67 if m.unsent else 1.0
-        bubble_rgba = hex_to_rgba(bubble_color, opacity)
         bubble_draw = ImageDraw.Draw(bubble_layer)
-        if m.side == "left":
-            tail = [(x0 + 2 * scale, y + bh - 16 * scale),
-                    (x0 - 6 * scale, y + bh),
-                    (x0 + 10 * scale, y + bh - 4 * scale)]
-            bubble_draw.polygon(tail, fill=bubble_color)
+        if m.unsent:
+            if m.side == "left":
+                center_big = (x0 + 5 * scale, y1 - 5 * scale)
+                big_rad = 8 * scale
+                bbox_big = (center_big[0] - big_rad, center_big[1] - big_rad,
+                            center_big[0] + big_rad, center_big[1] + big_rad)
+                bubble_draw.ellipse(bbox_big, fill=bubble_color)
+                
+                center_small = (x0 - 5 * scale, y1 + 5 * scale)
+                small_rad = 4 * scale
+                bbox_small = (center_small[0] - small_rad, center_small[1] - small_rad,
+                            center_small[0] + small_rad, center_small[1] + small_rad)
+                bubble_draw.ellipse(bbox_small, fill=bubble_color)
+            else:
+                center_big = (x1 - 5 * scale, y1 - 5 * scale)
+                big_rad = 8 * scale
+                bbox_big = (center_big[0] - big_rad, center_big[1] - big_rad,
+                            center_big[0] + big_rad, center_big[1] + big_rad)
+                bubble_draw.ellipse(bbox_big, fill=bubble_color)
+                
+                center_small = (x1 + 5 * scale, y1 + 5 * scale)
+                small_rad = 4 * scale
+                bbox_small = (center_small[0] - small_rad, center_small[1] - small_rad,
+                            center_small[0] + small_rad, center_small[1] + small_rad)
+                bubble_draw.ellipse(bbox_small, fill=bubble_color)
         else:
-            tail = [(x1 - 2 * scale, y + bh - 16 * scale),
-                    (x1 + 6 * scale, y + bh),
-                    (x1 - 10 * scale, y + bh - 4 * scale)]
-            bubble_draw.polygon(tail, fill=bubble_color)
+            if m.side == "left":
+                tail = [(x0 + 2 * scale, y + bh - 16 * scale),
+                        (x0 - 6 * scale, y + bh),
+                        (x0 + 10 * scale, y + bh - 4 * scale)]
+                bubble_draw.polygon(tail, fill=bubble_color)
+            else:
+                tail = [(x1 - 2 * scale, y + bh - 16 * scale),
+                        (x1 + 6 * scale, y + bh),
+                        (x1 - 10 * scale, y + bh - 4 * scale)]
+                bubble_draw.polygon(tail, fill=bubble_color)
         bubble_draw.rounded_rectangle((x0, y, x1, y1), radius, fill=bubble_color)
 
         
@@ -253,7 +266,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         by = y + (bh - badge_sz) // 2
         img_bg.paste(badge, (badge_x, by), badge)
 
-        spacing = pad // 4 if (i < len(messages) - 1 and messages[i + 1].side == m.side) else pad
+        spacing = pad // 5 if (i < len(messages) - 1 and messages[i + 1].side == m.side) else int(pad * 0.67)
         y += bh + spacing
 
     
@@ -268,7 +281,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
 
 
 if __name__ == "__main__":
-    data = call_llm_on_image("convo2.jpeg", "", "")
+    data = call_llm_on_image("convo.png", "", "")
     elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
     color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
     msgs = parse_llm_response(data)
