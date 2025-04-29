@@ -58,7 +58,7 @@ jobs:
 
       - name: Install system dependencies for Playwright
         run: |
-          for i in {1..2}; do sudo timeout 60 apt-get update && break || sleep 10; done
+          for i in {1..2}; do sudo timeout 30 apt-get update && break || sleep 10; done
           sudo apt-get install -y \
             libnss3 \
             libatk-bridge2.0-0 \
