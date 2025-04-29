@@ -7,6 +7,8 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.43.1-focal
 
     env:
       REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
@@ -23,51 +25,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-    
-      - name: Cache virtual environment
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            venv-${{ runner.os }}-
     
       - name: Set up virtualenv and install dependencies
         run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
-    
-      - name: Cache Playwright browsers
-        uses: actions/cache@v3
-        with:
-            path: ~/.cache/ms-playwright
-            key: ${{ runner.os }}-playwright-${{ hashFiles('**/requirements.txt') }}
-            restore-keys: |
-              ${{ runner.os }}-playwright-
-    
-      - name: Install Playwright Browsers
-        run: |
-          source .venv/bin/activate
-          playwright install
-
-      - name: Install system dependencies for Playwright
-        run: |
-          sudo timeout 300 apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libgtk-3-0 \
-            libxss1 \
-            libx11-xcb1 \
-            libgbm1 \
-            libasound2t64 \
-            xvfb
     
       - name: Restore Reddit session
         run: |
