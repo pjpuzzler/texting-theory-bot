@@ -225,20 +225,20 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         x1, y1 = x0 + bw, y + bh
 
         
-        opacity = 1.0 if m.unsent else 1.0
+        opacity = 0.67 if m.unsent else 1.0
         bubble_rgba = hex_to_rgba(bubble_color, opacity)
         bubble_draw = ImageDraw.Draw(bubble_layer)
         if m.side == "left":
             tail = [(x0 + 2 * scale, y + bh - 16 * scale),
                     (x0 - 6 * scale, y + bh),
                     (x0 + 10 * scale, y + bh - 4 * scale)]
-            bubble_draw.polygon(tail, fill=bubble_rgba)
+            bubble_draw.polygon(tail, fill=bubble_color)
         else:
             tail = [(x1 - 2 * scale, y + bh - 16 * scale),
                     (x1 + 6 * scale, y + bh),
                     (x1 - 10 * scale, y + bh - 4 * scale)]
-            bubble_draw.polygon(tail, fill=bubble_rgba)
-        bubble_draw.rounded_rectangle((x0, y, x1, y1), radius, fill=bubble_rgba)
+            bubble_draw.polygon(tail, fill=bubble_color)
+        bubble_draw.rounded_rectangle((x0, y, x1, y1), radius, fill=bubble_color)
 
         
         text_drawings.append(((x0 + pad, y + pad - text_offset), txt, font, text_hex, line_sp, -10 if m.side=="left" else 10))
@@ -268,7 +268,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
 
 
 if __name__ == "__main__":
-    data = call_llm_on_image("convo.jpeg", "", "")
+    data = call_llm_on_image("convo2.jpeg", "", "")
     elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
     color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
     msgs = parse_llm_response(data)
