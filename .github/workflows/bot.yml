@@ -8,7 +8,7 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright/python:v1.43.1-jammy
+      image: mcr.microsoft.com/playwright:v1.52.0-jammy
 
     env:
       REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
@@ -31,19 +31,6 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - name: Install Playwright Browsers
-        run: |
-          source .venv/bin/activate
-          playwright install
 
       - name: Restore Reddit session
         run: |
