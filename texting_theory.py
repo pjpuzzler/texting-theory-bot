@@ -223,8 +223,8 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
                             center_big[0] + big_rad, center_big[1] + big_rad)
                 bubble_draw.ellipse(bbox_big, fill=bubble_color)
                 
-                center_small = (x0 - 4 * scale, y1 + 4 * scale)
-                small_rad = 4 * scale
+                center_small = (x0 - 3 * scale, y1 + 3 * scale)
+                small_rad = 3 * scale
                 bbox_small = (center_small[0] - small_rad, center_small[1] - small_rad,
                             center_small[0] + small_rad, center_small[1] + small_rad)
                 bubble_draw.ellipse(bbox_small, fill=bubble_color)
@@ -235,8 +235,8 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
                             center_big[0] + big_rad, center_big[1] + big_rad)
                 bubble_draw.ellipse(bbox_big, fill=bubble_color)
                 
-                center_small = (x1 + 4 * scale, y1 + 4 * scale)
-                small_rad = 4 * scale
+                center_small = (x1 + 3 * scale, y1 + 3 * scale)
+                small_rad = 3 * scale
                 bbox_small = (center_small[0] - small_rad, center_small[1] - small_rad,
                             center_small[0] + small_rad, center_small[1] + small_rad)
                 bubble_draw.ellipse(bbox_small, fill=bubble_color)
