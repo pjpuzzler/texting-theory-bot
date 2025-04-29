@@ -261,8 +261,6 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         ).resize((badge_sz, badge_sz))
         if badge.mode != 'RGBA':
             badge = badge.convert('RGBA')
-        if m.unsent:
-            badge.putalpha(badge.getchannel('A').point(lambda x: int(x * 0.67)))
         by = y + (bh - badge_sz) // 2
         img_bg.paste(badge, (badge_x, by), badge)
 
