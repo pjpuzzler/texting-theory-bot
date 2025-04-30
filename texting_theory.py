@@ -182,7 +182,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
         bh = h + 2 * pad
         total_h += bh
         if i < len(dims) - 1:
-            next_spacing = pad // 4 if messages[i + 1].side == messages[i].side else pad
+            next_spacing = pad // 5 if messages[i + 1].side == messages[i].side else int(pad * 0.67)
             total_h += next_spacing
     total_h += pad
 
