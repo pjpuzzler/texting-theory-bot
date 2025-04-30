@@ -72,7 +72,7 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
       contents=[
           types.Part.from_text(
               text=
-              f'Here is the possibly stitched-together image, along with the title and body text (if any) of the post, which may have additional context to help inform you. Do not let any opinion of the poster that may be included in this text influence yours, as this is your decision to make.\n\nTitle: {title}\nBody: {body}'
+              f'Here is the possibly stitched-together image, along with the title and body text (if any) of the post, which may have additional context to help inform you. Do not let any opinion of play quality the poster nor that may be included in this text (or possibly even classification symbols already placed on the image) influence your opinion, as this is your decision to make.\n\nTitle: {title}\nBody: {body}'
           ),
           types.Part.from_uri(file_uri=image.uri, mime_type="image/jpeg"),
       ],
