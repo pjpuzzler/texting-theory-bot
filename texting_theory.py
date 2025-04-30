@@ -162,8 +162,8 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
     pad = 12 * scale
     line_sp = 6 * scale
     radius = 16 * scale
-    badge_sz = 42 * scale
-    badge_margin = 52 * scale
+    badge_sz = 36 * scale
+    badge_margin = 42 * scale
 
     max_bubble_w = int(img_w * 0.75)
 
