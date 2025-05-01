@@ -16,7 +16,7 @@ from prompt import decrypt_prompt
 # load_dotenv()
 
 
-client = genai.Client(api_key=os.environ[["GEMINI_API_KEY", "GEMINI_API_KEY_ALT", "GEMINI_API_KEY_ALT_2", "GEMINI_API_KEY_ALT_3"][random.randint(0, 3)]])
+client = genai.Client(api_key=os.environ[["GEMINI_API_KEY", "GEMINI_API_KEY_ALT", "GEMINI_API_KEY_ALT_2", "GEMINI_API_KEY_ALT_3"][random.randint(3, 3)]])
 
 
 class Classification(enum.Enum):
@@ -67,8 +67,8 @@ SYSTEM_PROMPT = load_system_prompt()
 def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
   image = client.files.upload(file=image_path)
   response = client.models.generate_content(
-    #   model="gemini-2.5-pro-exp-03-25",
-      model="gemini-2.5-flash-preview-04-17",
+      model="gemini-2.5-pro-exp-03-25",
+    #   model="gemini-2.5-flash-preview-04-17",
       contents=[
           types.Part.from_text(
               text=
