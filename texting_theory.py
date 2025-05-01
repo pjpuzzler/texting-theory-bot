@@ -16,7 +16,7 @@ from prompt import decrypt_prompt
 # load_dotenv()
 
 
-client = genai.Client(api_key=os.environ[["GEMINI_API_KEY", "GEMINI_API_KEY_ALT", "GEMINI_API_KEY_ALT_2"][random.randint(0, 2)]])
+client = genai.Client(api_key=os.environ[["GEMINI_API_KEY", "GEMINI_API_KEY_ALT", "GEMINI_API_KEY_ALT_2", "GEMINI_API_KEY_ALT_3"][random.randint(0, 3)]])
 
 
 class Classification(enum.Enum):
