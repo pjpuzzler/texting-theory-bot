@@ -165,7 +165,7 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
     badge_sz = 36 * scale
     badge_margin = 42 * scale
 
-    max_bubble_w = int(img_w * 0.75)
+    max_bubble_w = int(img_w * 0.8)
 
     dummy = Image.new("RGB", (1, 1))
     dd = ImageDraw.Draw(dummy)
