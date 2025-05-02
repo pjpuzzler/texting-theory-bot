@@ -94,7 +94,7 @@ def format_counts(messages, color_left, color_right, elo_left, elo_right):
     return "\n".join(lines)
 
 
-def post_comment_image(post_id, file_path, messages, color_left, color_right, elo_left, elo_right, opening):
+def post_comment_image(post_id, file_path, messages, color_left, color_right, elo_left, elo_right, opening, best_continuation):
     counts = {c: [0, 0] for c in HUMANIZED_ORDER}
     has_message = [False, False]
     for m in messages:
@@ -158,6 +158,12 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         file_chooser.set_files(file_path)
 
         page.wait_for_timeout(100)
+
+        if best_continuation is not None:
+            page.keyboard.type(f"Best continuation: {best_continuation}", delay=10)
+            page.keyboard.press("Enter")
+
+            page.wait_for_timeout(50)
 
         page.keyboard.press("Control+I")
 
@@ -378,7 +384,7 @@ def handle_new_posts(post_id = None):
                     print("Already analyzed")
                     continue
 
-                post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right, data.get("opening"))
+                post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right, data.get("opening"), None)
 
                 # img_url = upload_image_to_imgur(out_path)
                 # print("Successfully uploaded to imgur")
