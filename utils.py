@@ -139,7 +139,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.wait_for_timeout(100)
 
-        page.keyboard.type("Game Review", delay=10)
+        page.keyboard.type("Game Analysis", delay=10)
         page.keyboard.press("Enter")
 
         page.wait_for_timeout(50)
