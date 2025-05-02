@@ -3,6 +3,7 @@ test.*
 .env
 *.png
 *.jpeg
+*.jpg
 reddit_storage.json
 *.txt
 !system_prompt_e.txt
