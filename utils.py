@@ -159,16 +159,16 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.wait_for_timeout(200)
 
-        if best_continuation is not None:
-            if best_continuation != "Resign":
-                best_continuation = f'"{best_continuation}"'
-            if messages and messages[-1].unsent:
-                page.keyboard.type(f"Suggested alternative: {best_continuation}", delay=10)
-            else:
-                page.keyboard.type(f"Best continuation: {best_continuation}", delay=10)
-            page.keyboard.press("Enter")
+        # if best_continuation is not None:
+        #     if best_continuation != "Resign":
+        #         best_continuation = f'"{best_continuation}"'
+        #     if messages and messages[-1].unsent:
+        #         page.keyboard.type(f"Suggested alternative: {best_continuation}", delay=10)
+        #     else:
+        #         page.keyboard.type(f"Best continuation: {best_continuation}", delay=10)
+        #     page.keyboard.press("Enter")
 
-            page.wait_for_timeout(50)
+        #     page.wait_for_timeout(50)
 
         page.keyboard.press("Control+I")
 
