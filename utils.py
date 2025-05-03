@@ -102,7 +102,7 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[
         if not classification:
             return None, 'char'  # Invalid input
 
-        negated = (i > 0 and code[i - 1] == '-')
+        negated = (j > 0 and code[j - 1] == '-')
 
         try:
             msg = messages[i]
