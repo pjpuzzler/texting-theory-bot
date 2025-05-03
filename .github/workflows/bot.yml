@@ -19,6 +19,9 @@ jobs:
       GEMINI_API_KEY_ALT_3: ${{ secrets.GEMINI_API_KEY_ALT_3 }}
       IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
       PROMPT_KEY: ${{ secrets.PROMPT_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      KV_NAMESPACE_ID: ${{ secrets.KV_NAMESPACE_ID }}
       POST_ID: ${{ github.event.client_payload.post_id }}
 
     steps:
