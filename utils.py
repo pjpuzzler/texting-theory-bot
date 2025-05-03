@@ -468,7 +468,7 @@ def handle_annotate(comments_json):
             print(f"Handling !annotate for comment {comment_id} on post {post_id}")
 
             try:
-                annotation_code = text.strip().split(" ", 1)[1]
+                annotation_code = text.strip().split(maxsplit=2)[1]
             except:
                 reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nPlease leave a new comment and try again.")
                 print(f"[!] Skipping comment {comment_id}")
