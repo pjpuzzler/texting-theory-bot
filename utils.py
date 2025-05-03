@@ -499,7 +499,7 @@ def handle_annotate(comments_json):
                 print(f"[!] Invalid annotation format in comment {comment_id}")
                 continue
             elif updated_msgs is None and code == 'char':
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an invalid character.\n\nPlease leave a new comment and try again.")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an unexpected character.\n\nPlease leave a new comment and try again.")
                 print(f"[!] Invalid annotation format in comment {comment_id}")
                 continue
 
