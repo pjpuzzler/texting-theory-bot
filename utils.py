@@ -438,38 +438,42 @@ def post_comment_replies(render_queue):
 
         page = context.new_page()
         for post_id, comment_id, out_path in render_queue:
-            page.goto(f'https://www.reddit.com/r/TextingTheory/comments/{post_id}/comment/{comment_id}/')
+            try:
+                page.goto(f'https://www.reddit.com/r/TextingTheory/comments/{post_id}/comment/{comment_id}/')
 
-            reply_button = page.locator("button.button-plain-weak:has(svg[icon-name='comment-outline']):has-text('Reply')").nth(0)
-            reply_button.wait_for(state="visible", timeout=5000)
-            reply_button.scroll_into_view_if_needed()
-            page.wait_for_timeout(100)
-            reply_button.click()
-
-            image_button = page.locator('button:has(svg[icon-name="image-post-outline"])')
-            image_button.wait_for(state="visible", timeout=5000)
-
-            with page.expect_file_chooser() as fc_info:
-                image_button.scroll_into_view_if_needed()
+                reply_button = page.locator("button.button-plain-weak:has(svg[icon-name='comment-outline']):has-text('Reply')").nth(0)
+                reply_button.wait_for(state="visible", timeout=5000)
+                reply_button.scroll_into_view_if_needed()
                 page.wait_for_timeout(100)
-                image_button.click()
-            
-            page.wait_for_timeout(100)
-            
-            file_chooser = fc_info.value
-            file_chooser.set_files(out_path)
+                reply_button.click()
 
-            page.wait_for_timeout(200)
+                image_button = page.locator('button:has(svg[icon-name="image-post-outline"])')
+                image_button.wait_for(state="visible", timeout=5000)
 
-            comment_submit = page.locator('button[slot="submit-button"][type="submit"]')
-            comment_submit.wait_for(state="visible", timeout=5000)
-            comment_submit.scroll_into_view_if_needed()
-            page.wait_for_timeout(100)
-            comment_submit.click()
+                with page.expect_file_chooser() as fc_info:
+                    image_button.scroll_into_view_if_needed()
+                    page.wait_for_timeout(100)
+                    image_button.click()
+                
+                page.wait_for_timeout(100)
+                
+                file_chooser = fc_info.value
+                file_chooser.set_files(out_path)
 
-            print(f'comment replied: {comment_id}')
+                page.wait_for_timeout(200)
 
-            page.wait_for_timeout(2000)
+                comment_submit = page.locator('button[slot="submit-button"][type="submit"]')
+                comment_submit.wait_for(state="visible", timeout=5000)
+                comment_submit.scroll_into_view_if_needed()
+                page.wait_for_timeout(100)
+                comment_submit.click()
+
+                print(f'comment replied: {comment_id}')
+
+                page.wait_for_timeout(2000)
+            except Exception as e:
+                print(f"[!] Failed to post comment reply for {comment_id}: {e}")
+                continue
 
         # Clean up
         browser.close()
