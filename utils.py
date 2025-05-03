@@ -91,13 +91,15 @@ def get_post_by_id(post_id):
 
 def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[TextMessage] | None, str]:
     updated_msgs = []
-    for i, ch in enumerate(code):
+    i = 0
+    for j, ch in enumerate(code):
         if ch == '-':
+            if j == len(code) - 1 or code[j + 1] == '-':
+                return None, 'char'
             continue  # skip, handled as prefix
 
         classification = DIGIT_TO_CLASS.get(ch.lower())
         if not classification:
-            print(f"[!] Unknown classification character: {ch}")
             return None, 'char'  # Invalid input
 
         negated = (i > 0 and code[i - 1] == '-')
@@ -105,7 +107,6 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[
         try:
             msg = messages[i]
         except IndexError:
-            print(f"[!] Annotation refers to message index {i}, which is out of bounds.")
             return None, 'len'
 
         # Make a copy with updated classification and (optionally) side
@@ -116,7 +117,9 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[
             unsent=msg.unsent
         )
         updated_msgs.append(new_msg)
+        i += 1
 
+    if i != len(messages): return None, 'len'
     return updated_msgs, ''
 
 def stitch_images_vertically(image_paths, output_path):
@@ -494,13 +497,13 @@ def handle_annotate(comments_json):
                 continue
 
             updated_msgs, code = apply_annotation_code(msgs, annotation_code)
-            if (updated_msgs is None and code == 'len') or len(updated_msgs) != len(msgs):
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).\n\nPlease leave a new comment and try again.")
-                print(f"[!] Invalid annotation format in comment {comment_id}")
-                continue
-            elif updated_msgs is None and code == 'char':
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an unexpected character.\n\nPlease leave a new comment and try again.")
-                print(f"[!] Invalid annotation format in comment {comment_id}")
+            if updated_msgs is None:
+                if code == 'len':
+                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).\n\nPlease leave a new comment and try again.")
+                    print(f"[!] Invalid annotation length in comment {comment_id}")
+                elif code == 'char':
+                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an unexpected character.\n\nPlease leave a new comment and try again.")
+                    print(f"[!] Unexpected annotation character in comment {comment_id}")
                 continue
 
             out_path = os.path.join(tmpdir, f"{comment_id}_annotated.jpg")
