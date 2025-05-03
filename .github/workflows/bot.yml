@@ -23,7 +23,7 @@ jobs:
       CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
       KV_NAMESPACE_ID: ${{ secrets.KV_NAMESPACE_ID }}
       POST_ID: ${{ github.event.client_payload.post_id }}
-      ANNOTATE_COMMENTS: ${{ github.event.client_payload.comments }}
+      ANNOTATE_COMMENTS: ${{ toJson(github.event.client_payload.comments) }}
 
     steps:
       - name: Checkout repo

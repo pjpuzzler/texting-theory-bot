@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from PIL import Image
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-from texting_theory import call_llm_on_image, parse_llm_response, render_conversation, Classification
+from texting_theory import call_llm_on_image, parse_llm_response, render_conversation, Classification, TextMessage
 
 reddit = praw.Reddit(client_id=os.environ["REDDIT_CLIENT_ID"],
                      client_secret=os.environ["REDDIT_SECRET"],
@@ -35,6 +35,19 @@ HUMANIZED_ORDER = [
     Classification.BLUNDER,
 ]
 
+DIGIT_TO_CLASS = {
+    '1': Classification.BRILLIANT,
+    '2': Classification.GREAT,
+    '3': Classification.BEST,
+    '4': Classification.EXCELLENT,
+    '5': Classification.GOOD,
+    '6': Classification.INACCURACY,
+    '7': Classification.MISTAKE,
+    '8': Classification.MISS,
+    '9': Classification.BLUNDER,
+    'b': Classification.BOOK,
+}
+
 def store_post_analysis_json(post_id: str, data: dict):
     url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/storage/kv/namespaces/{KV_NAMESPACE_ID}/values/post:{post_id}"
     headers = {
@@ -45,6 +58,18 @@ def store_post_analysis_json(post_id: str, data: dict):
     if not response.ok:
         raise Exception(f"KV store failed for post:{post_id} — {response.status_code}: {response.text}")
     print(f"Stored post:{post_id} to KV")
+
+def get_post_json_from_kv(post_id):
+    url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/storage/kv/namespaces/{KV_NAMESPACE_ID}/values/post:{post_id}"
+    headers = {
+        "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 404:
+        print(f"[!] Post {post_id} not found in KV.")
+        return None
+    response.raise_for_status()
+    return response.json()
 
 
 def get_recent_posts():
@@ -63,6 +88,36 @@ def get_top_posts():
 def get_post_by_id(post_id):
     return reddit.submission(id=post_id)
 
+
+def apply_annotation_code(messages: list[TextMessage], code: str) -> list[TextMessage]:
+    updated_msgs = []
+    for i, ch in enumerate(code):
+        if ch == '-':
+            continue  # skip, handled as prefix
+
+        classification = DIGIT_TO_CLASS.get(ch.lower())
+        if not classification:
+            print(f"[!] Unknown classification character: {ch}")
+            return None  # Invalid input
+
+        negated = (i > 0 and code[i - 1] == '-')
+
+        try:
+            msg = messages[i]
+        except IndexError:
+            print(f"[!] Annotation refers to message index {i}, which is out of bounds.")
+            return None
+
+        # Make a copy with updated classification and (optionally) side
+        new_msg = TextMessage(
+            side=("right" if msg.side == "left" else "left") if negated else msg.side,
+            content=msg.content,
+            classification=classification,
+            unsent=msg.unsent
+        )
+        updated_msgs.append(new_msg)
+
+    return updated_msgs
 
 def stitch_images_vertically(image_paths, output_path):
     images = [Image.open(p).convert("RGB") for p in image_paths]
@@ -339,8 +394,103 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         browser.close()
 
 
+
+def post_comment_replies(render_queue):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)  # Headful mode
+        context = None
+
+        if Path(STORAGE_FILE).exists():
+            print('Loading existing session...')
+            context = browser.new_context(viewport={"width": 1600, "height": 900}, storage_state=STORAGE_FILE)
+        else:
+            assert False
+
+        page = context.new_page()
+        for post_id, comment_id, out_path in render_queue:
+            page.goto(f'https://www.reddit.com/r/TextingTheory/comments/{post_id}/comment/{comment_id}/')
+
+            reply_button = page.locator("button.button-plain-weak:has(svg[icon-name='comment-outline']):has-text('Reply')").nth(0)
+            reply_button.wait_for(state="visible", timeout=5000)
+            reply_button.scroll_into_view_if_needed()
+            page.wait_for_timeout(100)
+            reply_button.click()
+
+            image_button = page.locator('button:has(svg[icon-name="image-post-outline"])')
+            image_button.wait_for(state="visible", timeout=5000)
+
+            with page.expect_file_chooser() as fc_info:
+                image_button.scroll_into_view_if_needed()
+                page.wait_for_timeout(100)
+                image_button.click()
+            
+            page.wait_for_timeout(100)
+            
+            file_chooser = fc_info.value
+            file_chooser.set_files(out_path)
+
+            page.wait_for_timeout(200)
+
+            comment_submit = page.locator('button[slot="submit-button"][type="submit"]')
+            comment_submit.wait_for(state="visible", timeout=5000)
+            comment_submit.scroll_into_view_if_needed()
+            page.wait_for_timeout(100)
+            comment_submit.click()
+
+            print(f'comment replied: {comment_id}')
+
+            page.wait_for_timeout(2000)
+
+        # Clean up
+        browser.close()
+
+
 def handle_annotate(comments_json):
-    pass
+    render_queue = []
+    for comment in comments_json:
+        comment_id = comment["comment_id"]
+        post_id = comment["post_id"]
+        text = comment["text"]
+
+        print(f"Handling !annotate for comment {comment_id} on post {post_id}")
+
+        try:
+            annotation_code = text.strip().split(" ", 1)[1]  # e.g., "5892-45"
+        except:
+            print(f"[!] Skipping comment {comment_id}")
+            continue
+        
+        post_data = get_post_json_from_kv(post_id)
+        if not post_data:
+            print(f"[!] Skipping comment {comment_id} — post data missing.")
+            continue
+
+        print(f"Found post data for {post_id}")
+
+        msgs = parse_llm_response(post_data)
+
+        updated_msgs = apply_annotation_code(msgs, annotation_code)
+        if updated_msgs is None or len(updated_msgs) != len(msgs):
+            print(f"[!] Invalid annotation format in comment {comment_id}")
+            continue
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_path = os.path.join(tmpdir, f"{comment_id}_annotated.jpg")
+
+            color_left = post_data["color"].get("left")
+            color_right = post_data["color"].get("right")
+            background = post_data["color"].get("background_hex")
+
+            render_conversation(updated_msgs, color_left, color_right, background, out_path)
+
+            print(f"Rendered image for comment {comment_id}")
+            render_queue.append((post_id, comment_id, out_path))
+    
+    if render_queue:
+        post_comment_replies(render_queue)
+    
+    print('all annotate commands handled')
+
 
 def handle_new_posts(post_id = None):
     # for post in get_recent_posts():
