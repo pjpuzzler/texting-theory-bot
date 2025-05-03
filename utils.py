@@ -89,7 +89,7 @@ def get_post_by_id(post_id):
     return reddit.submission(id=post_id)
 
 
-def apply_annotation_code(messages: list[TextMessage], code: str) -> list[TextMessage]:
+def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[TextMessage] | None, str]:
     updated_msgs = []
     for i, ch in enumerate(code):
         if ch == '-':
@@ -98,7 +98,7 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> list[TextMe
         classification = DIGIT_TO_CLASS.get(ch.lower())
         if not classification:
             print(f"[!] Unknown classification character: {ch}")
-            return None  # Invalid input
+            return None, 'char'  # Invalid input
 
         negated = (i > 0 and code[i - 1] == '-')
 
@@ -106,7 +106,7 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> list[TextMe
             msg = messages[i]
         except IndexError:
             print(f"[!] Annotation refers to message index {i}, which is out of bounds.")
-            return None
+            return None, 'len'
 
         # Make a copy with updated classification and (optionally) side
         new_msg = TextMessage(
@@ -117,7 +117,7 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> list[TextMe
         )
         updated_msgs.append(new_msg)
 
-    return updated_msgs
+    return updated_msgs, ''
 
 def stitch_images_vertically(image_paths, output_path):
     images = [Image.open(p).convert("RGB") for p in image_paths]
@@ -493,9 +493,13 @@ def handle_annotate(comments_json):
                 print(f"[!] Skipping comment {comment_id} — post is over a day old")
                 continue
 
-            updated_msgs = apply_annotation_code(msgs, annotation_code)
-            if updated_msgs is None or len(updated_msgs) != len(msgs):
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}), or contains an invalid character.\n\nExample: `!annotate 58b9`")
+            updated_msgs, code = apply_annotation_code(msgs, annotation_code)
+            if (updated_msgs is None and code == 'len') or len(updated_msgs) != len(msgs):
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).")
+                print(f"[!] Invalid annotation format in comment {comment_id}")
+                continue
+            elif updated_msgs is None and code == 'char':
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an invalid character.")
                 print(f"[!] Invalid annotation format in comment {comment_id}")
                 continue
 
