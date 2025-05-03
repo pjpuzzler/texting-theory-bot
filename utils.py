@@ -370,12 +370,11 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("About the bot", delay=5)
+        page.keyboard.type("!annotate", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        # page.keyboard.type("https://support.chess.com/en/articles/8584089-how-does-game-review-work#h_49f5656333", delay=5) https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqefbfm/
-        page.keyboard.type("https://www.reddit.com/r/TextingTheory/comments/1k8fed9/utextingtheorybot/", delay=5)
+        page.keyboard.type("https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/command_annotate/", delay=5)
 
         save_link_button = page.get_by_test_id("btn-save-link")
         save_link_button.wait_for(state="visible", timeout=5000)
@@ -399,11 +398,12 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("Make your own analysis with !annotate", delay=5)
+        page.keyboard.type("About the bot", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/command_annotate/", delay=5)
+        # page.keyboard.type("https://support.chess.com/en/articles/8584089-how-does-game-review-work#h_49f5656333", delay=5) https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqefbfm/
+        page.keyboard.type("https://www.reddit.com/r/TextingTheory/comments/1k8fed9/utextingtheorybot/", delay=5)
 
         save_link_button = page.get_by_test_id("btn-save-link")
         save_link_button.wait_for(state="visible", timeout=5000)
