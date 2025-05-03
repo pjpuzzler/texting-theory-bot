@@ -288,5 +288,6 @@ if __name__ == "__main__":
     elo_left, elo_right = data["elo"].get("left"), data["elo"].get("right")
     color_data_left, color_data_right = data["color"].get("left"), data["color"].get("right")
     msgs = parse_llm_response(data)
+    print(msgs)
     render_conversation(msgs, color_data_left, color_data_right, data["color"]["background_hex"], "final_chat.png")
     print('rendered image')

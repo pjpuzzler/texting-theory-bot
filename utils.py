@@ -41,7 +41,7 @@ def store_post_analysis_json(post_id: str, data: dict):
         "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
         "Content-Type": "application/json"
     }
-    response = requests.put(url, headers=headers, data=json.dumps(data))
+    response = requests.put(url, headers=headers, data=json.dumps(data, ensure_ascii=False))
     if not response.ok:
         raise Exception(f"KV store failed for post:{post_id} — {response.status_code}: {response.text}")
     print(f"Stored post:{post_id} to KV")
