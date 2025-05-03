@@ -444,6 +444,14 @@ def post_comment_replies(render_queue):
         # Clean up
         browser.close()
 
+def reply_to_comment(comment_id: str, message: str):
+    try:
+        comment = reddit.comment(id=comment_id)
+        comment.reply(message)
+        print(f"Replied to comment {comment_id}")
+    except Exception as e:
+        print(f"[!] Failed to reply to comment {comment_id}: {e}")
+
 
 def handle_annotate(comments_json):
     render_queue = []
@@ -459,11 +467,13 @@ def handle_annotate(comments_json):
             try:
                 annotation_code = text.strip().split(" ", 1)[1]
             except:
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nExample: `!annotate 58b9`")
                 print(f"[!] Skipping comment {comment_id}")
                 continue
 
             post_data = get_post_json_from_kv(post_id)
             if not post_data:
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.")
                 print(f"[!] Skipping comment {comment_id} — post data missing.")
                 continue
 
@@ -471,8 +481,21 @@ def handle_annotate(comments_json):
 
             msgs = parse_llm_response(post_data)
 
+            if len(msgs) > 10:
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post has **{len(msgs)} messages**, which exceeds the 10-message limit for annotation.")
+                print(f"[!] Skipping comment {comment_id} — too many messages ({len(msgs)})")
+                continue
+
+            post = get_post_by_id(post_id)
+            post_age = datetime.now(timezone.utc) - datetime.fromtimestamp(post.created_utc, tz=timezone.utc)
+            if post_age > timedelta(days=1):
+                reply_to_comment(comment_id, "⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post is **over 1 day old**.")
+                print(f"[!] Skipping comment {comment_id} — post is over a day old")
+                continue
+
             updated_msgs = apply_annotation_code(msgs, annotation_code)
             if updated_msgs is None or len(updated_msgs) != len(msgs):
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}), or contains an invalid character.\n\nExample: `!annotate 58b9`")
                 print(f"[!] Invalid annotation format in comment {comment_id}")
                 continue
 
