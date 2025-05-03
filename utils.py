@@ -18,6 +18,10 @@ reddit = praw.Reddit(client_id=os.environ["REDDIT_CLIENT_ID"],
 
 STORAGE_FILE = "reddit_storage.json"
 
+CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
+KV_NAMESPACE_ID = os.getenv("KV_NAMESPACE_ID")
+CLOUDFLARE_API_TOKEN = os.getenv("CLOUDFLARE_API_TOKEN")
+
 HUMANIZED_ORDER = [
     Classification.BRILLIANT,
     Classification.GREAT,
@@ -30,6 +34,17 @@ HUMANIZED_ORDER = [
     Classification.MISS,
     Classification.BLUNDER,
 ]
+
+def store_post_analysis_json(post_id: str, data: dict):
+    url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/storage/kv/namespaces/{KV_NAMESPACE_ID}/values/post:{post_id}"
+    headers = {
+        "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    response = requests.put(url, headers=headers, data=json.dumps(data))
+    if not response.ok:
+        raise Exception(f"KV store failed for post:{post_id} — {response.status_code}: {response.text}")
+    print(f"Stored post:{post_id} to KV")
 
 
 def get_recent_posts():
@@ -390,6 +405,8 @@ def handle_new_posts(post_id = None):
                     continue
 
                 post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right, data.get("opening"), data.get("best_continuation"))
+
+                store_post_analysis_json(post.id, data)
 
                 # img_url = upload_image_to_imgur(out_path)
                 # print("Successfully uploaded to imgur")
