@@ -447,34 +447,35 @@ def post_comment_replies(render_queue):
 
 def handle_annotate(comments_json):
     render_queue = []
-    for comment in comments_json:
-        comment_id = comment["comment_id"]
-        post_id = comment["post_id"]
-        text = comment["text"]
 
-        print(f"Handling !annotate for comment {comment_id} on post {post_id}")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for comment in comments_json:
+            comment_id = comment["comment_id"]
+            post_id = comment["post_id"]
+            text = comment["text"]
 
-        try:
-            annotation_code = text.strip().split(" ", 1)[1]  # e.g., "5892-45"
-        except:
-            print(f"[!] Skipping comment {comment_id}")
-            continue
-        
-        post_data = get_post_json_from_kv(post_id)
-        if not post_data:
-            print(f"[!] Skipping comment {comment_id} — post data missing.")
-            continue
+            print(f"Handling !annotate for comment {comment_id} on post {post_id}")
 
-        print(f"Found post data for {post_id}")
+            try:
+                annotation_code = text.strip().split(" ", 1)[1]
+            except:
+                print(f"[!] Skipping comment {comment_id}")
+                continue
 
-        msgs = parse_llm_response(post_data)
+            post_data = get_post_json_from_kv(post_id)
+            if not post_data:
+                print(f"[!] Skipping comment {comment_id} — post data missing.")
+                continue
 
-        updated_msgs = apply_annotation_code(msgs, annotation_code)
-        if updated_msgs is None or len(updated_msgs) != len(msgs):
-            print(f"[!] Invalid annotation format in comment {comment_id}")
-            continue
+            print(f"Found post data for {post_id}")
 
-        with tempfile.TemporaryDirectory() as tmpdir:
+            msgs = parse_llm_response(post_data)
+
+            updated_msgs = apply_annotation_code(msgs, annotation_code)
+            if updated_msgs is None or len(updated_msgs) != len(msgs):
+                print(f"[!] Invalid annotation format in comment {comment_id}")
+                continue
+
             out_path = os.path.join(tmpdir, f"{comment_id}_annotated.jpg")
 
             color_left = post_data["color"].get("left")
@@ -485,11 +486,12 @@ def handle_annotate(comments_json):
 
             print(f"Rendered image for comment {comment_id}")
             render_queue.append((post_id, comment_id, out_path))
-    
-    if render_queue:
-        post_comment_replies(render_queue)
-    
-    print('all annotate commands handled')
+
+        if render_queue:
+            post_comment_replies(render_queue)
+
+    print('All annotate commands handled.')
+
 
 
 def handle_new_posts(post_id = None):
