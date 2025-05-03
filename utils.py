@@ -467,13 +467,13 @@ def handle_annotate(comments_json):
             try:
                 annotation_code = text.strip().split(" ", 1)[1]
             except:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nExample: `!annotate 58b9`")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nPlease leave a new comment and try again.")
                 print(f"[!] Skipping comment {comment_id}")
                 continue
 
             post_data = get_post_json_from_kv(post_id)
             if not post_data:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.\n\nPlease try again after the bot has left an analysis.")
                 print(f"[!] Skipping comment {comment_id} — post data missing.")
                 continue
 
@@ -495,11 +495,11 @@ def handle_annotate(comments_json):
 
             updated_msgs, code = apply_annotation_code(msgs, annotation_code)
             if (updated_msgs is None and code == 'len') or len(updated_msgs) != len(msgs):
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).\n\nPlease leave a new comment and try again.")
                 print(f"[!] Invalid annotation format in comment {comment_id}")
                 continue
             elif updated_msgs is None and code == 'char':
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an invalid character.")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an invalid character.\n\nPlease leave a new comment and try again.")
                 print(f"[!] Invalid annotation format in comment {comment_id}")
                 continue
 
