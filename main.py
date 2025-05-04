@@ -9,7 +9,7 @@ if __name__ == "__main__":
     if post_id:
         print(f'Got request to analyze post {post_id}')
         handle_new_posts(post_id)
-    elif comments_json:
+    elif comments_json and comments_json.strip().startswith('['):
         print(f'Got request to annotate comments')
         handle_annotate(json.loads(comments_json))
     else:
