@@ -513,7 +513,8 @@ def handle_annotate(comments_json):
 
             post_data = get_post_json_from_kv(post_id)
             if not post_data:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.\n\nPlease try again after the bot has left an analysis.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- !annotate command is currently down for maintenence.\n\nSorry for the inconvenience, please try again tomorrow.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                # reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.\n\nPlease try again after the bot has left an analysis.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                 print(f"[!] Skipping comment {comment_id} — post data missing.")
                 continue
 
