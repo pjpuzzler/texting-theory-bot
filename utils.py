@@ -629,7 +629,7 @@ def handle_new_posts(post_id = None):
 
                 post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right, data.get("opening"), data.get("best_continuation"))
 
-                store_post_analysis_json(post.id, data)
+                # store_post_analysis_json(post.id, data)
 
                 # img_url = upload_image_to_imgur(out_path)
                 # print("Successfully uploaded to imgur")
