@@ -513,8 +513,8 @@ def handle_annotate(comments_json):
 
             post_data = get_post_json_from_kv(post_id)
             if not post_data:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- !annotate command is currently down for maintenence.\n\nSorry for the inconvenience, please try again tomorrow.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                # reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.\n\nPlease try again after the bot has left an analysis.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                # reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- !annotate command is currently down for maintenence.\n\nSorry for the inconvenience, please try again tomorrow.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.\n\nPlease try again after the bot has left an analysis.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                 print(f"[!] Skipping comment {comment_id} — post data missing.")
                 continue
 
@@ -629,7 +629,7 @@ def handle_new_posts(post_id = None):
 
                 post_comment_image(post.id, out_path, msgs, None if color_data_left is None else color_data_left["label"], None if color_data_right is None else color_data_right["label"], elo_left, elo_right, data.get("opening"), data.get("best_continuation"))
 
-                # store_post_analysis_json(post.id, data)
+                store_post_analysis_json(post.id, data)
 
                 # img_url = upload_image_to_imgur(out_path)
                 # print("Successfully uploaded to imgur")
