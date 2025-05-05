@@ -564,6 +564,8 @@ def handle_annotate(comments_json):
 
     print('All annotate commands handled.')
 
+def key_id():
+    return ["", "_ALT", "_ALT_2", "_ALT_3"][random.randint(0, 3)]
 
 
 def handle_new_posts(post_id = None):
@@ -644,6 +646,3 @@ def handle_new_posts(post_id = None):
                 # print(f"Commented on post {post.id}")
     print('Ran successfully')
     return "Done", 200
-
-def key_id():
-    return ["", "_ALT", "_ALT_2", "_ALT_3"][random.randint(0, 3)]
