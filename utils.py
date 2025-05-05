@@ -522,16 +522,16 @@ def handle_annotate(comments_json):
 
             msgs = parse_llm_response(post_data)
 
-            if len(msgs) > 10:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post has **{len(msgs)} messages**, which exceeds the 10-message limit for annotation.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+            if len(msgs) > 15:
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post has **{len(msgs)} messages**, which exceeds the 15-message limit for annotation.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                 print(f"[!] Skipping comment {comment_id} — too many messages ({len(msgs)})")
                 continue
 
             post = get_post_by_id(post_id)
             post_age = datetime.now(timezone.utc) - datetime.fromtimestamp(post.created_utc, tz=timezone.utc)
-            if post_age > timedelta(days=1):
-                reply_to_comment(comment_id, "⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post is **over 1 day old**.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                print(f"[!] Skipping comment {comment_id} — post is over a day old")
+            if post_age > timedelta(days=3):
+                reply_to_comment(comment_id, "⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post is **over 3 days old**.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                print(f"[!] Skipping comment {comment_id} — post is over 3 days old")
                 continue
 
             updated_msgs, code = apply_annotation_code(msgs, annotation_code)
