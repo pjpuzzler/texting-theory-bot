@@ -10,13 +10,15 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor
 from google import genai
 from google.genai import types
 from prompt import decrypt_prompt
+from utils import api_key
 
 
 # from dotenv import load_dotenv
 # load_dotenv()
 
 
-client = genai.Client(api_key=os.environ[["GEMINI_API_KEY", "GEMINI_API_KEY_ALT", "GEMINI_API_KEY_ALT_2", "GEMINI_API_KEY_ALT_3"][random.randint(0, 3)]])
+API_KEY = api_key()
+client = genai.Client(api_key=API_KEY)
 
 
 class Classification(enum.Enum):
