@@ -10,15 +10,10 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor
 from google import genai
 from google.genai import types
 from prompt import decrypt_prompt
-from utils import api_key
 
 
 # from dotenv import load_dotenv
 # load_dotenv()
-
-
-API_KEY = api_key()
-client = genai.Client(api_key=API_KEY)
 
 
 class Classification(enum.Enum):
@@ -46,6 +41,8 @@ class Classification(enum.Enum):
       case _:
         return f"1024x/{self.value}_1024x.png"
 
+def api_key():
+    return os.environ[[f"GEMINI_API_KEY" + key_id()]]
 
 @dataclass
 class TextMessage:
@@ -64,7 +61,11 @@ def load_system_prompt():
     return system_prompt
 
 
+API_KEY = api_key()
+client = genai.Client(api_key=API_KEY)
 SYSTEM_PROMPT = load_system_prompt()
+
+
 
 def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
   image = client.files.upload(file=image_path)
@@ -159,6 +160,9 @@ def wrap_text(text, draw, font, max_width):
             lines.append(line)
     return "\n".join(lines)
 
+
+def key_id():
+    return ["", "_ALT", "_ALT_2", "_ALT_3"][random.randint(0, 3)]
 
 def render_conversation(messages: list[TextMessage], color_data_left, color_data_right, background_hex, output_path="output.png"):
     base_w = 320

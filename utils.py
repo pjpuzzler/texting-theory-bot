@@ -4,7 +4,6 @@ import requests
 import tempfile
 import time
 import json
-import random
 from datetime import datetime, timezone, timedelta
 from PIL import Image
 from pathlib import Path
@@ -485,9 +484,6 @@ def post_comment_replies(render_queue):
         # Clean up
         browser.close()
 
-def api_key():
-    return os.environ[[f"GEMINI_API_KEY" + key_id()]]
-
 def reply_to_comment(comment_id: str, message: str):
     try:
         comment = reddit.comment(id=comment_id)
@@ -563,9 +559,6 @@ def handle_annotate(comments_json):
             post_comment_replies(render_queue)
 
     print('All annotate commands handled.')
-
-def key_id():
-    return ["", "_ALT", "_ALT_2", "_ALT_3"][random.randint(0, 3)]
 
 
 def handle_new_posts(post_id = None):
