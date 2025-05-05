@@ -43,7 +43,7 @@ class Classification(enum.Enum):
         return f"1024x/{self.value}_1024x.png"
 
 def api_key():
-    return os.environ[[f"GEMINI_API_KEY" + key_id()]]
+    return os.environ["GEMINI_API_KEY" + key_id()]
 
 @dataclass
 class TextMessage:
