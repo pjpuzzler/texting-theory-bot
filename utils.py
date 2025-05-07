@@ -565,8 +565,7 @@ def handle_new_posts(post_id = None):
     # for post in get_recent_posts():
     # for post in get_top_posts():
     if post_id is None:
-        # posts = get_recent_posts()
-        posts = [get_post_by_id('1kg7tgs')]
+        posts = get_recent_posts()
     else:
         posts = [get_post_by_id(post_id)]
     for post in posts:
