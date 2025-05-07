@@ -251,9 +251,18 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.keyboard.press("Control+I")
 
-        page.wait_for_timeout(100)
+        page.wait_for_timeout(50)
 
         page.keyboard.type(f"{opening}", delay=10)
+        page.keyboard.press("Enter")
+
+        page.wait_for_timeout(50)
+
+        page.keyboard.press("Control+I")
+
+        page.wait_for_timeout(50)
+
+        page.keyboard.type(f"| New Elo scale: ~600 median, ~450 average |", delay=10)
         page.keyboard.press("Enter")
 
         page.wait_for_timeout(50)
