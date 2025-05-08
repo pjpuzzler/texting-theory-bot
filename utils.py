@@ -516,7 +516,7 @@ def handle_annotate(comments_json):
             try:
                 annotation_code = text.strip().split(maxsplit=2)[1]
             except:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nPlease leave a new comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nPlease leave a new top-level comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                 print(f"[!] Skipping comment {comment_id}")
                 continue
 
@@ -546,10 +546,10 @@ def handle_annotate(comments_json):
             updated_msgs, code = apply_annotation_code(msgs, annotation_code)
             if updated_msgs is None:
                 if code == 'len':
-                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).\n\nPlease leave a new comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).\n\nPlease leave a new top-level comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                     print(f"[!] Invalid annotation length in comment {comment_id}")
                 elif code == 'char':
-                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an unexpected character.\n\nPlease leave a new comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an unexpected character.\n\nPlease leave a new top-level comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                     print(f"[!] Unexpected annotation character in comment {comment_id}")
                 continue
 
