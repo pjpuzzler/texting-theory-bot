@@ -238,16 +238,16 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.wait_for_timeout(200)
 
-        # if best_continuation is not None:
-        #     if best_continuation != "Resign":
-        #         best_continuation = f'"{best_continuation}"'
-        #     if messages and messages[-1].unsent:
-        #         page.keyboard.type(f"Suggested alternative: {best_continuation}", delay=10)
-        #     else:
-        #         page.keyboard.type(f"Best continuation: {best_continuation}", delay=10)
-        #     page.keyboard.press("Enter")
+        if best_continuation is not None:
+            if best_continuation != "Resign":
+                best_continuation = f'"{best_continuation}"'
+            if messages and messages[-1].unsent:
+                page.keyboard.type(f"Suggested alternative: {best_continuation}", delay=10)
+            else:
+                page.keyboard.type(f"Best continuation: {best_continuation}", delay=10)
+            page.keyboard.press("Enter")
 
-        #     page.wait_for_timeout(50)
+            page.wait_for_timeout(50)
 
         page.keyboard.press("Control+I")
 
@@ -258,14 +258,14 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
 
         page.wait_for_timeout(50)
 
-        page.keyboard.press("Control+I")
+        # page.keyboard.press("Control+I")
 
-        page.wait_for_timeout(50)
+        # page.wait_for_timeout(50)
 
-        page.keyboard.type(f"New Elo scale: ~600 median, ~450 average", delay=10)
-        page.keyboard.press("Enter")
+        # page.keyboard.type(f"New Elo scale: ~600 median, ~450 average", delay=10)
+        # page.keyboard.press("Enter")
 
-        page.wait_for_timeout(50)
+        # page.wait_for_timeout(50)
 
         table_button = page.locator('button:has(svg[icon-name="table-outline"])')
         table_button.wait_for(state="visible", timeout=5000)
