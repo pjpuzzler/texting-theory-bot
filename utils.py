@@ -381,6 +381,11 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.keyboard.press("Enter")
         # page.keyboard.press("Enter")
 
+        if datetime.datetime.now().weekday() == 0:
+            page.keyboard.type("Megablunder Monday!", delay=5)
+            page.wait_for_timeout(50)
+            page.keyboard.press("Enter")
+
         link_button = page.locator('button:has(svg[icon-name="link-outline"])')
         link_button.wait_for(state="visible", timeout=5000)
         link_button.scroll_into_view_if_needed()
