@@ -542,8 +542,8 @@ def handle_annotate(comments_json):
 
             msgs = parse_llm_response(post_data)
 
-            if len(msgs) > 15:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post has **{len(msgs)} messages**, which exceeds the 15-message limit for annotation.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
+            if len(msgs) > 20:
+                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post has **{len(msgs)} messages**, which exceeds the 20-message limit for annotation.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
                 print(f"[!] Skipping comment {comment_id} — too many messages ({len(msgs)})")
                 continue
 
