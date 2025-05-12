@@ -364,10 +364,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
             if c not in counts:
                 continue
             l, r = counts[c]
-            if c is Classification.MEGABLUNDER:
-                label = 'MegaBlunder'
-            else:
-                label = c.name.replace('_', ' ').title()
+            label = c.name.replace('_', ' ').title()
 
             if color_left is not None and has_message[0]:
                 page.keyboard.type(str(l), delay=10)
