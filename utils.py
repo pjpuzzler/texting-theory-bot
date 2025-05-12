@@ -381,7 +381,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.keyboard.press("Enter")
         # page.keyboard.press("Enter")
 
-        if datetime.datetime.now().weekday() == 0:
+        if Classification.MEGABLUNDER in counts:
             page.keyboard.type("Megablunder Monday!", delay=5)
             page.wait_for_timeout(50)
             page.keyboard.press("Enter")
