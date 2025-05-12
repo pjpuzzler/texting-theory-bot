@@ -2,6 +2,7 @@ import enum
 import json
 import os
 import random
+import datetime
 from dataclasses import dataclass
 from typing import List
 from pilmoji import Pilmoji
@@ -30,6 +31,7 @@ class Classification(enum.Enum):
   GOOD = "good"
   GREAT = "great"
   INACCURACY = "inaccuracy"
+  MEGABLUNDER = "megablunder"
   MISS = "miss"
   MISTAKE = "mistake"
   RESIGN = "resign"
@@ -69,18 +71,21 @@ SYSTEM_PROMPT = load_system_prompt()
 
 
 def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
+  if datetime.datetime.now().weekday() == 0:
+      extra = "\n\nP.S. Today is Monday, which means you have the special ability to classify a message as a MEGABLUNDER! If a message is truly deserving of something even worse than a BLUNDER, you have the ability today to give it the rating it truly deserves. Use it sparingly, only for the worst-of-the-worst incomprehesibly bad BLUNDERs."
+  else:
+      extra = ''
   image = client.files.upload(file=image_path)
   response = client.models.generate_content(
       model="gemini-2.5-pro-exp-03-25",
     #   model="gemini-2.5-flash-preview-04-17",
       contents=[
           types.Part.from_text(
-              text=
-              f'Post Title: "{title}"\n\nPost Body: "{body}"'
+              text=f'Post Title: "{title}"\n\nPost Body: "{body}"'
           ),
           types.Part.from_uri(file_uri=image.uri, mime_type="image/jpeg"),
       ],
-      config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.0, safety_settings=[types.SafetySetting(
+      config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT + extra, temperature=0.0, safety_settings=[types.SafetySetting(
             category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
             threshold=types.HarmBlockThreshold.OFF,
         ),

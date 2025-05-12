@@ -33,6 +33,7 @@ HUMANIZED_ORDER = [
     Classification.MISTAKE,
     Classification.MISS,
     Classification.BLUNDER,
+    Classification.MEGABLUNDER
 ]
 
 DIGIT_TO_CLASS = {
@@ -45,6 +46,7 @@ DIGIT_TO_CLASS = {
     '7': Classification.MISTAKE,
     '8': Classification.MISS,
     '9': Classification.BLUNDER,
+    '0': Classification.MEGABLUNDER,
     'b': Classification.BOOK,
     'f': Classification.FORCED,
     'c': Classification.CHECKMATE,
@@ -183,6 +185,8 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
             counts[m.classification][idx] += 1
         elif m.classification is Classification.FORCED:
             counts[Classification.GOOD][idx] += 1
+    if counts[Classification.MEGABLUNDER] == [0, 0]:
+        del counts[Classification.MEGABLUNDER]
     
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)  # Headful mode
@@ -273,7 +277,7 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.wait_for_timeout(250)
         table_button.click()
 
-        for _ in range(8):
+        for _ in range(len(counts) - 2):
             table_actions_button = page.locator('button:has(svg[icon-name="overflow-horizontal-outline"]) >> text=Table actions menu')
             table_actions_button.wait_for(state="visible", timeout=5000)
             table_actions_button.scroll_into_view_if_needed()
@@ -357,6 +361,8 @@ def post_comment_image(post_id, file_path, messages, color_left, color_right, el
         page.wait_for_timeout(50)
 
         for c in HUMANIZED_ORDER:
+            if c not in counts:
+                continue
             l, r = counts[c]
             label = c.name.replace('_', ' ').title()
 
