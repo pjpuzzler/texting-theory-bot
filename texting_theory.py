@@ -362,12 +362,12 @@ def render_reddit_chain(
     # Consistent bottom padding with inter-message spacing
     BOTTOM_IMAGE_PADDING = BETWEEN_MESSAGES_VERTICAL_SPACING 
 
-    AVATAR_SIZE = 114
+    AVATAR_SIZE = 136
     AVATAR_BG_COLOR = (40, 40, 40, 255)
     
     USERNAME_AVATAR_HORIZONTAL_GAP = 30
     # Increased spacing between avatar bottom and text block top
-    AVATAR_TEXT_BLOCK_VERTICAL_SPACING = 35 
+    AVATAR_TEXT_BLOCK_VERTICAL_SPACING = 50
 
     TEXT_LINE_LEADING = 18
     
@@ -376,8 +376,8 @@ def render_reddit_chain(
     
     # --- Fonts ---
     try:
-        font_username = ImageFont.truetype("Arial Bold.ttf", 40)
-        font_text = ImageFont.truetype("Arial.ttf", 46)
+        font_username = ImageFont.truetype("Arial Bold.ttf", 56)
+        font_text = ImageFont.truetype("Arial.ttf", 64)
     except IOError:
         print("Warning: Arial fonts not found. Using default.")
         font_username = ImageFont.load_default()
