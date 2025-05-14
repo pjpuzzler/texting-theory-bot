@@ -406,7 +406,7 @@ def render_reddit_chain(
 
         # 1e) full block height = pad_top + inner_h + pad_bottom
         # pad_top and pad_bottom both = pad
-        b_h = pad + inner_h + int(pad * (1 if idx == len(messages)-1 else -0.2))
+        b_h = pad + inner_h + int(pad * (1 if idx == len(messages)-1 else 0))
         block_heights.append(b_h)
 
         # 1f) track max text width for badge X-position
@@ -519,6 +519,11 @@ if __name__ == "__main__":
     render_reddit_chain([
         TextMessage("", "I want to date a I want to date a I want to date a I want to date aI want to date a", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
         TextMessage("", "I want to date and fuck the bos", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
+        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "Where's the goddamn bot at???", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "It's difficult because most of the exchanges are really short and if the bot can give a GM based on 3 messages then it will make more mistakes in giving it when underserved. We need more longer exchanges and then ai think it will be easier for the bot to give GM", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
