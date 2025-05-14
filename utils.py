@@ -122,7 +122,9 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[
             side=("right" if msg.side == "left" else "left") if negated else msg.side,
             content=msg.content,
             classification=classification,
-            unsent=msg.unsent
+            unsent=msg.unsent,
+            username=msg.username,
+            avatar_url=msg.avatar_url,
         )
         updated_msgs.append(new_msg)
         i += 1
