@@ -49,10 +49,10 @@ DIGIT_TO_CLASS = {
     '0': Classification.MEGABLUNDER,
     'b': Classification.BOOK,
     'f': Classification.FORCED,
-    'c': Classification.CHECKMATE,
+    '#': Classification.CHECKMATE,
     'r': Classification.RESIGN,
     'd': Classification.DRAW,
-    't': Classification.CLOCK,
+    'c': Classification.CLOCK,
     'w': Classification.WINNER,
 }
 
