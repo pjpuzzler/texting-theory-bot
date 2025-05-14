@@ -663,6 +663,7 @@ def handle_annotate(comments_json):
                     username    = author.name if author else "[deleted]",
                     avatar_url  = getattr(author, "icon_img", None)
                 ))
+                print(f"{msgs[-1].username}: {msgs[-1].content}")
 
             # apply the code
             updated, err = apply_annotation_code(msgs, code)
