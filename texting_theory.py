@@ -17,8 +17,8 @@ from prompt import decrypt_prompt
 from random_key import key_id
 
 
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 
 class Classification(enum.Enum):
