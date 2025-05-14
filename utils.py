@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from PIL import Image
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-from texting_theory import call_llm_on_image, parse_llm_response, render_conversation, Classification, TextMessage
+from texting_theory import call_llm_on_image, parse_llm_response, render_conversation, render_reddit_chain, Classification, TextMessage
 
 reddit = praw.Reddit(client_id=os.environ["REDDIT_CLIENT_ID"],
                      client_secret=os.environ["REDDIT_SECRET"],
@@ -513,72 +513,177 @@ def reply_to_comment(comment_id: str, message: str):
         print(f"[!] Failed to reply to comment {comment_id}: {e}")
 
 
+def old_handle_top_level(cid: str,
+                         pid: str,
+                         code: str,
+                         tmpdir: str,
+                         render_queue: list):
+
+    # 1) fetch analysis JSON
+    post_data = get_post_json_from_kv(pid)
+    if not post_data:
+        reply_to_comment(
+            cid,
+            "⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n"
+            "- No analysis found for current post.\n\n"
+            "Please try again after the bot has left an analysis.\n\n"
+            "[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)"
+        )
+        return
+
+    # 2) re-parse the LLM messages
+    msgs = parse_llm_response(post_data)
+    if len(msgs) > 20:
+        reply_to_comment(
+            cid,
+            f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n"
+            f"- This post has **{len(msgs)} messages**, which exceeds the 20-message limit.\n\n"
+            "[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)"
+        )
+        return
+
+    # 3) age check
+    post = get_post_by_id(pid)
+    age = datetime.now(timezone.utc) - datetime.fromtimestamp(post.created_utc, tz=timezone.utc)
+    if age > timedelta(days=7):
+        reply_to_comment(
+            cid,
+            "⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n"
+            "- This post is **over 7 days old**.\n\n"
+            "[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)"
+        )
+        return
+
+    # 4) apply the user’s code
+    updated_msgs, err = apply_annotation_code(msgs, code)
+    if updated_msgs is None:
+        if err == 'len':
+            err_msg = (
+                f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n"
+                f"- The annotation code doesn't match the number of messages ({len(msgs)}).\n\n"
+                "[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)"
+            )
+        else:
+            err_msg = (
+                f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n"
+                "- The annotation code contains an unexpected character.\n\n"
+                "[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)"
+            )
+        reply_to_comment(cid, err_msg)
+        return
+
+    # 5) render into tmpdir and queue
+    out_path = os.path.join(tmpdir, f"{cid}_annotated.png")
+    color_left  = post_data["color"].get("left")
+    color_right = post_data["color"].get("right")
+    background  = post_data["color"].get("background_hex")
+
+    render_conversation(
+        updated_msgs,
+        color_data_left  = color_left,
+        color_data_right = color_right,
+        background_hex   = background,
+        output_path      = out_path,
+    )
+    render_queue.append((pid, cid, out_path))
+
+
 def handle_annotate(comments_json):
     render_queue = []
 
+    # We open one tempdir for this whole run, so files live until after we reply:
     with tempfile.TemporaryDirectory() as tmpdir:
-        for comment in comments_json:
-            comment_id = comment["comment_id"]
-            post_id = comment["post_id"]
-            text = comment["text"]
+        for cmd in comments_json:
+            cid   = cmd["comment_id"]
+            pid   = cmd["post_id"]
+            p_id  = cmd["parent_id"]
+            body  = cmd["text"]
+            print(f"Handling !annotate for comment {cid} (parent={p_id}) on post {pid}")
 
-            print(f"Handling !annotate for comment {comment_id} on post {post_id}")
+            # parse code
+            parts = body.strip().split(maxsplit=2)
+            if len(parts) < 2:
+                reply_to_comment(cid, "⚠️ Invalid `!annotate` syntax—no code found. Try again.")
+                continue
+            code = parts[1]
+            depth = len([ch for ch in code if ch != '-'])
+            if depth == 0:
+                reply_to_comment(cid, "⚠️ You must supply at least one classification digit.")
+                continue
 
+            # top‐level case: fall back to your existing flow
+            if p_id.startswith("t3_"):
+                # … just call your old top‐level logic here, e.g.
+                old_handle_top_level(cid, pid, code, tmpdir, render_queue)
+                # and continue
+                continue
+
+            if "-" in code:
+                reply_to_comment(
+                    cid,
+                    "⚠️ Hyphens (`-`) are only allowed in top-level annotations (to flip sides). "
+                    "When annotating a reply-chain, just supply your classification digits."
+                )
+                continue
+
+            # otherwise, walk up the reply chain
+            chain = []
             try:
-                annotation_code = text.strip().split(maxsplit=2)[1]
-            except:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- Invalid formatting.\n\nPlease leave a new top-level comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                print(f"[!] Skipping comment {comment_id}")
+                cur = reddit.comment(id=cid)
+                while len(chain) < depth:
+                    parent = cur.parent()
+                    if isinstance(parent, praw.models.Comment):
+                        chain.append(parent)
+                        cur = parent
+                    else:
+                        break
+            except Exception as e:
+                print(cid, f"⚠️ Could not fetch comment chain: {e}")
                 continue
 
-            post_data = get_post_json_from_kv(post_id)
-            if not post_data:
-                # reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- !annotate command is currently down for maintenence.\n\nSorry for the inconvenience, please try again tomorrow.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- No analysis found for current post.\n\nPlease try again after the bot has left an analysis.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                print(f"[!] Skipping comment {comment_id} — post data missing.")
+            if len(chain) < depth:
+                reply_to_comment(
+                    cid,
+                    f"⚠️ You asked for {depth} annotations but this reply is only {len(chain)} levels deep."
+                )
                 continue
 
-            print(f"Found post data for {post_id}")
+            # reverse so the oldest (top‐level) is first, then slice
+            chain = list(reversed(chain))[:depth]
 
-            msgs = parse_llm_response(post_data)
+            # build messages with username + avatar
+            msgs = []
+            for i, c in enumerate(chain):
+                author = c.author
+                msgs.append(TextMessage(
+                    side        = "left" if i % 2 == 0 else "right",
+                    content     = c.body,
+                    classification = Classification.BOOK,   # placeholder
+                    unsent      = False,
+                    username    = author.name if author else "[deleted]",
+                    avatar_url  = getattr(author, "icon_img", None)
+                ))
 
-            if len(msgs) > 20:
-                reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post has **{len(msgs)} messages**, which exceeds the 20-message limit for annotation.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                print(f"[!] Skipping comment {comment_id} — too many messages ({len(msgs)})")
+            # apply the code
+            updated, err = apply_annotation_code(msgs, code)
+            if updated is None:
+                msg = {
+                    'len':  "⚠️ Your code's length doesn't match the number of messages.",
+                    'char': "⚠️ Your code contains invalid characters."
+                }.get(err, "⚠️ Unknown error.")
+                reply_to_comment(cid, msg)
                 continue
 
-            post = get_post_by_id(post_id)
-            post_age = datetime.now(timezone.utc) - datetime.fromtimestamp(post.created_utc, tz=timezone.utc)
-            if post_age > timedelta(days=7):
-                reply_to_comment(comment_id, "⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- This post is **over 7 days old**.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                print(f"[!] Skipping comment {comment_id} — post is over 7 days old")
-                continue
+            # render into tmpdir
+            out_path = f"{tmpdir}/{cid}_annotated.png"
+            render_reddit_chain(updated, out_path)
+            render_queue.append((pid, cid, out_path))
 
-            updated_msgs, code = apply_annotation_code(msgs, annotation_code)
-            if updated_msgs is None:
-                if code == 'len':
-                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code doesn't match the number of messages ({len(msgs)}).\n\nPlease leave a new top-level comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                    print(f"[!] Invalid annotation length in comment {comment_id}")
-                elif code == 'char':
-                    reply_to_comment(comment_id, f"⚠️ Sorry, your `!annotate` request couldn't be processed:\n\n- The annotation code contains an unexpected character.\n\nPlease leave a new top-level comment and try again.\n\n[about !annotate](https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/)")
-                    print(f"[!] Unexpected annotation character in comment {comment_id}")
-                continue
-
-            out_path = os.path.join(tmpdir, f"{comment_id}_annotated.jpg")
-
-            color_left = post_data["color"].get("left")
-            color_right = post_data["color"].get("right")
-            background = post_data["color"].get("background_hex")
-
-            render_conversation(updated_msgs, color_left, color_right, background, out_path)
-
-            print(f"Rendered image for comment {comment_id}")
-            render_queue.append((post_id, comment_id, out_path))
-
+        # now that all files still exist, post your replies
         if render_queue:
             post_comment_replies(render_queue)
 
-    print('All annotate commands handled.')
+    print("All annotate commands handled.")
 
 
 def handle_new_posts(post_id = None):
