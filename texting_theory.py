@@ -363,7 +363,6 @@ def render_reddit_chain(
     BOTTOM_IMAGE_PADDING = BETWEEN_MESSAGES_VERTICAL_SPACING 
 
     AVATAR_SIZE = 136
-    AVATAR_BG_COLOR = (40, 40, 40, 255)
     
     USERNAME_AVATAR_HORIZONTAL_GAP = 30
     # Increased spacing between avatar bottom and text block top
@@ -528,7 +527,7 @@ def render_reddit_chain(
 
         hires_avatar_size = AVATAR_SIZE * 4 
         hires_avatar = avatar_source_img.resize((hires_avatar_size, hires_avatar_size), Image.LANCZOS)
-        avatar_bg_hires = Image.new("RGBA", (hires_avatar_size, hires_avatar_size), AVATAR_BG_COLOR)
+        avatar_bg_hires = Image.new("RGBA", (hires_avatar_size, hires_avatar_size), bg_color)
         avatar_bg_hires.paste(hires_avatar, (0, 0), hires_avatar)
         mask_hires = Image.new("L", (hires_avatar_size, hires_avatar_size), 0)
         ImageDraw.Draw(mask_hires).ellipse((0, 0, hires_avatar_size, hires_avatar_size), fill=255)
