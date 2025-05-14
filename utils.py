@@ -658,9 +658,9 @@ def handle_annotate(comments_json):
             for i, c in enumerate(chain):
                 author = c.author
                 msgs.append(TextMessage(
-                    side        = "left" if i % 2 == 0 else "right",
+                    side        = "right",
                     content     = c.body,
-                    classification = Classification.BOOK,   # placeholder
+                    classification = Classification.GOOD,   # placeholder
                     unsent      = False,
                     username    = author.name if author else "[deleted]",
                     avatar_url  = getattr(author, "icon_img", None)

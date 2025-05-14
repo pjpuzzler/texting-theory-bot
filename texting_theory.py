@@ -17,8 +17,8 @@ from prompt import decrypt_prompt
 from random_key import key_id
 
 
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class Classification(enum.Enum):
@@ -302,7 +302,7 @@ def render_reddit_chain(
     messages: list[TextMessage],
     output_path: str,
     *,
-    max_width: int = 1600,
+    max_width: int = 1600 * 2,
     bg_color: str = "#101214",
     username_color: str = "#FFFFFF",
     text_color: str = "#E1E1E1",
@@ -311,18 +311,24 @@ def render_reddit_chain(
     from PIL import Image, ImageDraw, ImageFont
     import textwrap, requests, io, os
 
-    avatar_sz   = 48
-    indent_step = 50
-    pad         = 16
-    badge_sz    = 72
+    # scale factor
+    s = 2
 
-    font_username = ImageFont.truetype("Arial Bold.ttf", 18)
-    font_text     = ImageFont.truetype("Arial.ttf", 20)
+    avatar_sz   = 48   * s
+    indent_step = 50   * s
+    pad         = 16   * s
+    badge_sz    = 72   * s
+    line_sp     = 6    * s
+    badge_off   = 34   * s
+
+    font_username = ImageFont.truetype("Arial Bold.ttf", 18 * s)
+    font_text     = ImageFont.truetype("Arial.ttf",      20 * s)
 
     # measuring helper
     dummy    = Image.new("RGB", (1,1))
     measurer = ImageDraw.Draw(dummy)
     def measure(txt, fnt):
+        if txt is None: txt = ""
         bb = measurer.textbbox((0,0), txt, font=fnt)
         return bb[2]-bb[0], bb[3]-bb[1]
 
@@ -335,41 +341,36 @@ def render_reddit_chain(
     for idx, msg in enumerate(messages):
         indent = indent_step * idx
 
-        # 1a) wrap text generously
+        # wrap text generously
         cw         = measure("M", font_text)[0]
         base_avail = max_width - indent - avatar_sz - pad*3 - badge_sz
-        avail_w    = base_avail + cw * 16
+        avail_w    = base_avail + cw * (16 * s)
         max_chars  = max(10, int(avail_w // cw))
-        lines      = textwrap.TextWrapper(width=max_chars).wrap(msg.content)
+        lines      = textwrap.TextWrapper(width=max_chars).wrap(msg.content or "")
         wrapped.append(lines)
 
-        # 1b) compute where the text block ends
-        # username line
+        # compute where the text block ends
         uname_h = measure(msg.username, font_username)[1]
-        # gap 1.5*pad
         gap     = int(pad * 1.5)
-        # height of all message lines
-        y = pad + uname_h + gap
+        y       = pad + uname_h + gap
         for line in lines:
             line_h = measure(line, font_text)[1]
-            y += line_h + 6    # 6px between lines
-        msg_bottom = y        # from top of content area
+            y += line_h + line_sp
+        msg_bottom = y
 
-        # 1c) compute where the badge ends
-        # badge is vertically centered in the username+text block
-        content_block_h = uname_h + gap + sum(measure(l, font_text)[1] + 6 for l in lines)
-        badge_offset    = (content_block_h - badge_sz)//2 + 34
+        # compute where the badge ends
+        content_block_h = uname_h + gap + sum(measure(l, font_text)[1] + line_sp for l in lines)
+        badge_offset    = (content_block_h - badge_sz)//2 + badge_off
         badge_bottom    = badge_offset + badge_sz
 
-        # 1d) inner height is the lower of the two
+        # inner height is the lower of the two
         inner_h = max(msg_bottom, badge_bottom)
 
-        # 1e) full block height = pad_top + inner_h + pad_bottom
-        # pad_top and pad_bottom both = pad
-        b_h = pad + inner_h + int(pad * 0.75)
+        # full block height = pad_top + inner_h + pad_bottom (we keep pad_bottom = pad)
+        b_h = pad + inner_h + pad
         block_heights.append(b_h)
 
-        # 1f) track max text width for badge X-position
+        # track max text width for badge X-position
         mw = max((measure(line, font_text)[0] for line in lines), default=0)
         max_ws.append(mw)
         needed_ws.append(indent + pad + avatar_sz + pad + mw + pad + badge_sz + pad)
@@ -384,27 +385,25 @@ def render_reddit_chain(
     # 3) render each block
     y = 0
     for idx, msg in enumerate(messages):
-        indent = indent_step * idx
-        x0     = indent + pad
-        b_h    = block_heights[idx]
-        content_y0 = y + pad
+        indent      = indent_step * idx
+        x0          = indent + pad
+        b_h         = block_heights[idx]
+        content_y0  = y + pad
 
-        # fetch + mask avatar
-                # fetch + mask avatar with light-gray background
+        # fetch + mask avatar with gradient bg
         try:
-            resp = requests.get(msg.avatar_url, timeout=3)
+            resp   = requests.get(msg.avatar_url, timeout=3)
             av_src = Image.open(io.BytesIO(resp.content)).convert("RGBA")
         except:
-            # fallback solid gray if fetch fails
             av_src = Image.new("RGBA", (avatar_sz, avatar_sz), "#888888")
 
-        # upscale, so circle antialiasing stays smooth
+        # upscale
         big = avatar_sz * 4
         av4 = av_src.resize((big, big), Image.LANCZOS)
 
-        # composite PNG (with its own transparency) over gray
-        top_col = (25, 25, 25, 255)   # dark at top
-        bot_col = (90, 90, 90, 255)   # lighter at bottom
+        # vertical gradient at 4×
+        top_col = (25, 25, 25, 255)
+        bot_col = (90, 90, 90, 255)
         grad_bg = Image.new("RGBA", (big, big))
         draw_bg = ImageDraw.Draw(grad_bg)
         for gy in range(big):
@@ -413,43 +412,37 @@ def render_reddit_chain(
             g = int(top_col[1]*(1-t) + bot_col[1]*t)
             b = int(top_col[2]*(1-t) + bot_col[2]*t)
             draw_bg.line([(0, gy), (big, gy)], fill=(r, g, b, 255))
+        grad_bg.paste(av4, (0,0), av4)
 
-        grad_bg.paste(av4, (0, 0), av4)
-
-        # build a round mask
+        # circular mask
         mask4 = Image.new("L", (big, big), 0)
         md    = ImageDraw.Draw(mask4)
         md.ellipse((0, 0, big, big), fill=255)
 
-        # downscale to your avatar size
         avatar = grad_bg.resize((avatar_sz, avatar_sz), Image.LANCZOS)
         mask   = mask4.resize((avatar_sz, avatar_sz), Image.LANCZOS)
-
-        # paste onto the canvas
         canvas.paste(avatar, (x0, content_y0), mask)
 
-
-        # draw username centered on avatar
-        ux, _            = x0 + avatar_sz + pad, content_y0
-        _, uname_h       = measure(msg.username, font_username)
-        uy               = content_y0 + (avatar_sz - uname_h)//2
+        # draw username
+        ux, _      = x0 + avatar_sz + pad, content_y0
+        _, uname_h = measure(msg.username, font_username)
+        uy         = content_y0 + (avatar_sz - uname_h)//2
         draw.text((ux, uy), msg.username, font=font_username, fill=username_color)
 
         # draw message lines
         ty = uy + uname_h + int(pad * 1.5)
         for line in wrapped[idx]:
             draw.text((ux, ty), line, font=font_text, fill=text_color)
-            ty += measure(line, font_text)[1] + 6
+            ty += measure(line, font_text)[1] + line_sp
 
-        # draw badge at its offset
-        content_block_h = uname_h + int(pad * 1.5) + sum(measure(l, font_text)[1] + 6 for l in wrapped[idx])
-        badge_offset    = (content_block_h - badge_sz)//2 + 34
+        # draw badge
+        content_block_h = uname_h + int(pad * 1.5) + sum(measure(l, font_text)[1] + line_sp for l in wrapped[idx])
+        badge_offset    = (content_block_h - badge_sz)//2 + badge_off
         bx = ux + max_ws[idx] + pad
         by = content_y0 + badge_offset
         bp = msg.classification.png_path("white")
         if os.path.exists(bp):
-            bd = Image.open(bp).convert("RGBA")\
-                     .resize((badge_sz, badge_sz), Image.LANCZOS)
+            bd = Image.open(bp).convert("RGBA").resize((badge_sz, badge_sz), Image.LANCZOS)
             canvas.paste(bd, (bx, by), bd)
 
         # draw connector
@@ -457,9 +450,9 @@ def render_reddit_chain(
             sx = x0 + avatar_sz//2
             sy = content_y0 + avatar_sz
             r  = b_h - (avatar_sz * 1)
-            draw.line([(sx, sy), (sx, sy+r+10)], fill=connector_color, width=2)
-            draw.arc([sx, sy+r, sx+r, sy+r+20], start=90, end=180,
-                     fill=connector_color, width=2)
+            draw.line([(sx, sy), (sx, sy+r+20)], fill=connector_color, width=4)
+            draw.arc([sx, sy+r, sx+r, sy+r+40], start=90, end=180,
+                     fill=connector_color, width=4)
             nx = indent_step*(idx+1) + pad + avatar_sz//2
             # draw.line([(sx+r, sy+r), (nx, sy+r)], fill=connector_color, width=3)
 
@@ -482,4 +475,4 @@ if __name__ == "__main__":
         TextMessage("", "S", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
         TextMessage("", "gn bot atmn bthe gootatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamnatmn bthe goot at???t goddamn at???t goddamn bot at???", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         TextMessage("", "Where's the goddamn bot at???", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png")
-                         ], "out.jpg")
+                         ], "out2.jpg")
