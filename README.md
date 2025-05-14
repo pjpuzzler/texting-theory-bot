@@ -1,1 +1,1 @@
-Check it out here: https://www.reddit.com/user/texting-theory-bot/
+See it in action here: https://www.reddit.com/user/texting-theory-bot/
