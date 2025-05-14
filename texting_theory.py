@@ -353,7 +353,7 @@ def render_reddit_chain(
     max_image_width: int = 1280,
     bg_color: str = "#101214",
     username_color: str = "#8FA1AB",
-    text_color: str = "#FFFFFF",
+    text_color: str = "#D4D7D9",
 ):
     # --- Constants ---
     SIDE_MARGIN = 45
