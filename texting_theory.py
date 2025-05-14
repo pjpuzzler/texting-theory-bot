@@ -300,49 +300,49 @@ def render_conversation(messages: list[TextMessage], color_data_left, color_data
 
 def wrap_text_by_width(text: str, font, max_width: int, measure_fn) -> list[str]:
     lines = []
-    for paragraph in text.split("\n"):
-        words = paragraph.split(" ") # Consider using .split() for better handling of multiple spaces
-        current_line = ""
-        for word in words:
-            # Handle case where word might be empty if paragraph.split(" ") is used and there are multiple spaces
-            if not word: 
-                if not current_line: # Avoid starting a line with a space if multiple spaces occur
-                    current_line = " " # Or handle as preferred
-                else:
-                    current_line += " "
-                continue
+    if not text.strip():
+        return []
 
-            test_line = f"{current_line} {word}".strip()
-            w, _ = measure_fn(test_line, font)
+    for paragraph in text.split("\n"):
+        words = paragraph.split(" ")
+        current_line_being_built = ""
+        for word_idx, word in enumerate(words):
+            # Skip empty words that can result from multiple spaces if using str.split()
+            if not word and word_idx > 0 and (not words[word_idx-1] or current_line_being_built.endswith(" ")):
+                # Avoid adding multiple spaces if previous word was also effectively empty or line already ends with space
+                continue
+            if not word and not current_line_being_built: # Skip initial empty words
+                 continue
+
+
+            # Determine the test line
+            test_line = f"{current_line_being_built} {word}".strip() if current_line_being_built else word
             
+            w, _ = measure_fn(test_line, font)
             if w <= max_width:
-                current_line = test_line
+                current_line_being_built = test_line
             else:
-                if current_line: # Current line before adding word has content
-                    lines.append(current_line)
+                if current_line_being_built:
+                    lines.append(current_line_being_built)
                 
-                # Word itself might be too long for a new line
-                word_w, _ = measure_fn(word, font)
-                if word_w <= max_width:
-                    current_line = word
+                word_w_itself, _ = measure_fn(word, font)
+                if word_w_itself <= max_width:
+                    current_line_being_built = word
                 else:
-                    # Word is too long, break it character-by-character
-                    sub_word_part = ""
-                    for char_idx, char_in_word in enumerate(word):
-                        test_char_segment = sub_word_part + char_in_word
+                    sub_word_segment = ""
+                    for char_in_word in word:
+                        test_char_segment = sub_word_segment + char_in_word
                         char_seg_w, _ = measure_fn(test_char_segment, font)
                         if char_seg_w <= max_width:
-                            sub_word_part = test_char_segment
+                            sub_word_segment = test_char_segment
                         else:
-                            if sub_word_part: # Only append if sub_word_part has content
-                                lines.append(sub_word_part)
-                            sub_word_part = char_in_word
-                            # If char_in_word itself is too wide, it will form sub_word_part
-                            # and be appended in the next iteration or after the loop.
-                    current_line = sub_word_part # Remainder of the character-broken word
+                            if sub_word_segment:
+                                lines.append(sub_word_segment)
+                            sub_word_segment = char_in_word
+                    current_line_being_built = sub_word_segment # Remainder of the word
         
-        if current_line:
-            lines.append(current_line)
+        if current_line_being_built:
+            lines.append(current_line_being_built)
     return lines
 
 
@@ -350,60 +350,50 @@ def render_reddit_chain(
     messages: list[TextMessage],
     output_path: str,
     *,
-    max_image_width: int = 1280, # Renamed for clarity from general max_width
+    max_image_width: int = 1280,
     bg_color: str = "#101214",
     username_color: str = "#8FA1AB",
     text_color: str = "#FFFFFF",
-    # connector_color: str = "#484848", # Not used in current snippet
 ):
     # --- Constants ---
-    # General Layout
     SIDE_MARGIN = 45
     TOP_MARGIN = 45
-    BOTTOM_IMAGE_PADDING = 60 # Extra padding at the very bottom of the image
     BETWEEN_MESSAGES_VERTICAL_SPACING = 40
+    # Consistent bottom padding with inter-message spacing
+    BOTTOM_IMAGE_PADDING = BETWEEN_MESSAGES_VERTICAL_SPACING 
 
-    # Avatar
     AVATAR_SIZE = 114
-    AVATAR_BG_COLOR = (40, 40, 40, 255) # Solid color for avatar background
+    AVATAR_BG_COLOR = (40, 40, 40, 255)
+    
+    USERNAME_AVATAR_HORIZONTAL_GAP = 30
+    # Increased spacing between avatar bottom and text block top
+    AVATAR_TEXT_BLOCK_VERTICAL_SPACING = 35 
 
-    # Username
-    USERNAME_AVATAR_HORIZONTAL_GAP = 30 # Gap between avatar and username column
+    TEXT_LINE_LEADING = 18
     
-    # Text
-    USERNAME_TEXT_VERTICAL_SPACING = 15 # Gap between username bottom and text top
-    TEXT_LINE_LEADING = 18 # Extra spacing between lines of text (leading)
-    
-    # Badge
     BADGE_SIZE = 144
-    TEXT_BADGE_HORIZONTAL_GAP = 30 # Gap between text area and badge area
+    TEXT_BADGE_HORIZONTAL_GAP = 30
     
     # --- Fonts ---
     try:
         font_username = ImageFont.truetype("Arial Bold.ttf", 40)
         font_text = ImageFont.truetype("Arial.ttf", 46)
     except IOError:
-        print("Error: Font files (Arial Bold.ttf, Arial.ttf) not found. Using default font.")
+        print("Warning: Arial fonts not found. Using default.")
         font_username = ImageFont.load_default()
         font_text = ImageFont.load_default()
 
     # --- Text Measurement Setup ---
-    # Pillow's textbbox is preferred for more accurate dimensions.
-    # (0,0) origin, textbbox returns (x1, y1, x2, y2) relative to anchor.
-    # Default anchor for textbbox and draw.text is 'la' (left-ascent).
-    # We'll assume y-coordinates for drawing are top of text.
-    # For simplicity, measure_fn will return (width, height_of_bounding_box).
     dummy_image = Image.new("RGB", (1, 1))
     measurer = ImageDraw.Draw(dummy_image)
     
     def measure(text_to_measure, font_to_use):
         if not text_to_measure: return (0, 0)
-        bbox = measurer.textbbox((0, 0), text_to_measure, font=font_to_use)
+        # Using anchor="lt" (left-top) for textbbox
+        bbox = measurer.textbbox((0, 0), text_to_measure, font=font_to_use, anchor="lt")
         return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-    # Get text line height (bounding box height of a typical line)
-    # This is used for stacking lines; actual drawing uses (bbox_h + leading).
-    TEXT_LINE_BBOX_HEIGHT = measure("Tg", font_text)[1] # Height of typical text characters
+    TEXT_LINE_BBOX_HEIGHT = measure("Tg", font_text)[1] # Bounding box height of a typical text line
 
     # --- Handle Empty Input ---
     if not messages:
@@ -416,30 +406,24 @@ def render_reddit_chain(
     # --- First Pass: Calculate Text Layouts ---
     message_layouts = []
     for msg in messages:
-        # Define X coordinates for content columns
-        avatar_x_start = SIDE_MARGIN
-        username_text_badge_x_start = avatar_x_start + AVATAR_SIZE + USERNAME_AVATAR_HORIZONTAL_GAP
-        
-        # Available width for message text content
-        # Max width for text is between username_text_badge_x_start and start of badge area (from right)
-        badge_area_width_allowance = BADGE_SIZE + TEXT_BADGE_HORIZONTAL_GAP + SIDE_MARGIN
-        max_text_width = max_image_width - username_text_badge_x_start - badge_area_width_allowance
-        
+        max_text_width = max_image_width - SIDE_MARGIN - (BADGE_SIZE + TEXT_BADGE_HORIZONTAL_GAP + SIDE_MARGIN)
         wrapped_lines = wrap_text_by_width(msg.content, font_text, max_text_width, measure)
         
         text_block_height = 0
         if wrapped_lines:
             text_block_height = (len(wrapped_lines) * TEXT_LINE_BBOX_HEIGHT) + \
                                 ((len(wrapped_lines) - 1) * TEXT_LINE_LEADING if len(wrapped_lines) > 1 else 0)
-        
-        badge_exists = os.path.exists(msg.classification.png_path("white"))
+
+        badge_path_check = msg.classification.png_path("white")
+        badge_exists_check = os.path.exists(badge_path_check)
 
         message_layouts.append({
             'lines': wrapped_lines,
             'text_block_height': text_block_height,
             'username_width': measure(msg.username, font_username)[0],
             'username_height': measure(msg.username, font_username)[1],
-            'badge_exists': badge_exists,
+            'badge_exists': badge_exists_check,
+            'badge_path': badge_path_check if badge_exists_check else None,
         })
 
     # --- Second Pass: Calculate Precise Positions ---
@@ -447,133 +431,115 @@ def render_reddit_chain(
     current_y_cursor = TOP_MARGIN
     
     for idx, msg_layout_info in enumerate(message_layouts):
-        msg_obj = messages[idx] # Corresponding TextMessage object
-
-        # --- Avatar ---
+        # Avatar
         avatar_draw_x = SIDE_MARGIN
         avatar_draw_y = current_y_cursor
         avatar_center_y = avatar_draw_y + AVATAR_SIZE / 2
         avatar_bottom_y = avatar_draw_y + AVATAR_SIZE
 
-        # --- Username ---
-        username_draw_x = SIDE_MARGIN + AVATAR_SIZE + USERNAME_AVATAR_HORIZONTAL_GAP
-        # Center username text box vertically with avatar
+        # Username (beside avatar)
+        username_draw_x = avatar_draw_x + AVATAR_SIZE + USERNAME_AVATAR_HORIZONTAL_GAP
         username_draw_y = avatar_center_y - (msg_layout_info['username_height'] / 2)
         username_bottom_y = username_draw_y + msg_layout_info['username_height']
         
-        # --- Text and Badge Area ---
-        # This area starts below the username
-        text_badge_area_start_y = username_bottom_y + USERNAME_TEXT_VERTICAL_SPACING
-        
-        # Determine effective height for text/badge alignment
+        # Text Block (below avatar, flush left with avatar)
         current_text_block_height = msg_layout_info['text_block_height']
-        current_badge_height = BADGE_SIZE if msg_layout_info['badge_exists'] else 0
-        
-        # If no text and no badge, this area has 0 height.
-        # To prevent negative spacing if username is very tall and text_badge_area_start_y is high:
-        # ensure content starts at least at current_y_cursor for very short usernames.
-        text_badge_area_start_y = max(text_badge_area_start_y, current_y_cursor)
+        text_block_actual_start_x = avatar_draw_x
+        text_block_actual_start_y = avatar_bottom_y + AVATAR_TEXT_BLOCK_VERTICAL_SPACING
+        text_block_actual_bottom_y = text_block_actual_start_y + current_text_block_height
 
-
-        rhs_content_effective_height = max(current_text_block_height, current_badge_height)
-        if rhs_content_effective_height == 0 and not msg_layout_info['lines']: # No text, no badge
-             # Ensure some minimal height for the row if username is also empty or very short.
-             # Or rely on avatar_bottom_y to define row height.
-             pass
-
-
-        # Calculate Y positions for text block and badge, centered within rhs_content_effective_height
-        text_block_draw_y = text_badge_area_start_y + (rhs_content_effective_height - current_text_block_height) / 2
-        badge_draw_y = text_badge_area_start_y + (rhs_content_effective_height - current_badge_height) / 2
-        
-        text_block_actual_bottom_y = text_block_draw_y + current_text_block_height
-        badge_actual_bottom_y = badge_draw_y + current_badge_height
-        
-        # --- Badge X Position ---
+        # Badge (aligned with text block)
         badge_draw_x = max_image_width - SIDE_MARGIN - BADGE_SIZE
-        
-        # --- Determine Lowest Point for this Message ---
-        # Considers avatar, username, text block, and badge
-        # Note: username_bottom_y is usually above text_badge_area_start_y
-        # Lowest point of elements in this message row
-        current_message_content_bottom_y = max(
-            avatar_bottom_y,
-            text_block_actual_bottom_y if msg_layout_info['lines'] else text_badge_area_start_y, # Use area start if no text
-            badge_actual_bottom_y if msg_layout_info['badge_exists'] else text_badge_area_start_y # Use area start if no badge
-        )
-        # Ensure username doesn't get clipped if it's somehow the lowest (unlikely with this layout)
-        current_message_content_bottom_y = max(current_message_content_bottom_y, username_bottom_y)
+        badge_is_present = msg_layout_info['badge_exists']
+        badge_draw_y = 0 
+        badge_actual_bottom_y = text_block_actual_start_y # Default if no badge or text
 
+        if badge_is_present:
+            # Center badge with the text block or a hypothetical single line
+            effective_text_height_for_badge_centering = current_text_block_height
+            if current_text_block_height == 0: # No text
+                effective_text_height_for_badge_centering = TEXT_LINE_BBOX_HEIGHT
+            
+            badge_draw_y = text_block_actual_start_y + \
+                           (effective_text_height_for_badge_centering - BADGE_SIZE) / 2
+            badge_actual_bottom_y = badge_draw_y + BADGE_SIZE
+        
+        # Determine Lowest Point for this Message Unit
+        lowest_of_avatar_username_row = max(avatar_bottom_y, username_bottom_y)
+        
+        # If no text and no badge, text_block_actual_bottom_y = text_block_actual_start_y
+        # badge_actual_bottom_y would be text_block_actual_start_y if no badge.
+        # If badge exists, badge_actual_bottom_y is calculated.
+        # So, consider text_block_actual_bottom_y and badge_actual_bottom_y (if badge exists)
+        elements_below_avatar_bottoms = [text_block_actual_bottom_y]
+        if badge_is_present:
+            elements_below_avatar_bottoms.append(badge_actual_bottom_y)
+        else: # If no badge, and no text, its effective bottom is where text would start
+             if current_text_block_height == 0:
+                 elements_below_avatar_bottoms.append(text_block_actual_start_y)
+
+
+        lowest_of_elements_below_avatar = max(elements_below_avatar_bottoms)
+        
+        current_message_content_bottom_y = max(lowest_of_avatar_username_row, lowest_of_elements_below_avatar)
 
         message_draw_details.append({
             'avatar_pos': (avatar_draw_x, avatar_draw_y),
             'username_pos': (username_draw_x, username_draw_y),
             'text_lines': msg_layout_info['lines'],
-            'text_block_start_pos': (username_draw_x, text_block_draw_y),
+            'text_block_start_pos': (text_block_actual_start_x, text_block_actual_start_y),
             'badge_pos': (badge_draw_x, badge_draw_y),
-            'badge_exists': msg_layout_info['badge_exists'],
+            'badge_exists': badge_is_present,
+            'badge_path': msg_layout_info['badge_path'],
             'content_bottom_y': current_message_content_bottom_y
         })
         
-        # Update Y cursor for the next message
         current_y_cursor = current_message_content_bottom_y + BETWEEN_MESSAGES_VERTICAL_SPACING
     
-    # --- Calculate Final Image Height ---
-    # current_y_cursor is at the (top of next message) = (bottom of last message content + inter-message_pad)
-    # So, total height is (current_y_cursor - inter-message_pad) + bottom_image_pad
-    if not message_draw_details: # Should have been caught by `if not messages`
+    # Calculate Final Image Height
+    if not message_draw_details:
         final_image_height = TOP_MARGIN + BOTTOM_IMAGE_PADDING
     else:
         last_message_content_bottom = message_draw_details[-1]['content_bottom_y']
         final_image_height = int(last_message_content_bottom + BOTTOM_IMAGE_PADDING)
     
-    # Ensure minimum height
-    final_image_height = max(final_image_height, TOP_MARGIN + BOTTOM_IMAGE_PADDING)
+    # Ensure minimum height for an image even if content is very short
+    min_height_calc = TOP_MARGIN + AVATAR_SIZE + AVATAR_TEXT_BLOCK_VERTICAL_SPACING + BOTTOM_IMAGE_PADDING
+    final_image_height = max(final_image_height, min_height_calc)
 
-    # --- Create Canvas and Draw ---
-    canvas = Image.new("RGB", (max_image_width, final_image_height), bg_color)
+    # Create Canvas and Draw
+    canvas = Image.new("RGB", (max_image_width, int(final_image_height)), bg_color)
     draw = ImageDraw.Draw(canvas)
     
     for idx, details in enumerate(message_draw_details):
-        msg_obj = messages[idx] # Original message object
+        msg_obj = messages[idx]
         
         # Avatar
         try:
-            # TODO: Consider caching avatar fetches/images
             resp = requests.get(msg_obj.avatar_url, timeout=5)
-            resp.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+            resp.raise_for_status()
             avatar_source_img = Image.open(io.BytesIO(resp.content)).convert("RGBA")
         except requests.exceptions.RequestException as e:
-            print(f"Failed to fetch avatar for {msg_obj.username}: {e}. Using placeholder.")
-            avatar_source_img = Image.new("RGBA", (AVATAR_SIZE, AVATAR_SIZE), "#888888")
-        except IOError: # PIL specific error for bad image data
-            print(f"Failed to open avatar image for {msg_obj.username}. Using placeholder.")
-            avatar_source_img = Image.new("RGBA", (AVATAR_SIZE, AVATAR_SIZE), "#888888")
+            # print(f"Avatar fetch error for {msg_obj.username}: {e}")
+            avatar_source_img = Image.new("RGBA", (AVATAR_SIZE, AVATAR_SIZE), "#888")
+        except IOError: # PIL error
+            # print(f"Avatar PIL error for {msg_obj.username}")
+            avatar_source_img = Image.new("RGBA", (AVATAR_SIZE, AVATAR_SIZE), "#888")
 
-        # Prepare avatar (resize, circular mask, background)
-        # Upscale for antialiasing, then downscale
         hires_avatar_size = AVATAR_SIZE * 4 
         hires_avatar = avatar_source_img.resize((hires_avatar_size, hires_avatar_size), Image.LANCZOS)
-        
-        # Solid background for transparency handling
         avatar_bg_hires = Image.new("RGBA", (hires_avatar_size, hires_avatar_size), AVATAR_BG_COLOR)
-        avatar_bg_hires.paste(hires_avatar, (0, 0), hires_avatar) # Paste avatar onto background using its alpha
-        
+        avatar_bg_hires.paste(hires_avatar, (0, 0), hires_avatar)
         mask_hires = Image.new("L", (hires_avatar_size, hires_avatar_size), 0)
-        draw_mask = ImageDraw.Draw(mask_hires)
-        draw_mask.ellipse((0, 0, hires_avatar_size, hires_avatar_size), fill=255)
-        
+        ImageDraw.Draw(mask_hires).ellipse((0, 0, hires_avatar_size, hires_avatar_size), fill=255)
         final_avatar = avatar_bg_hires.resize((AVATAR_SIZE, AVATAR_SIZE), Image.LANCZOS)
         final_mask = mask_hires.resize((AVATAR_SIZE, AVATAR_SIZE), Image.LANCZOS)
-        
         canvas.paste(final_avatar, (int(details['avatar_pos'][0]), int(details['avatar_pos'][1])), final_mask)
         
         # Username
         draw.text(
             (int(details['username_pos'][0]), int(details['username_pos'][1])), 
-            msg_obj.username, 
-            font=font_username, 
-            fill=username_color
+            msg_obj.username, font=font_username, fill=username_color, anchor="lt"
         )
         
         # Text Content
@@ -581,29 +547,25 @@ def render_reddit_chain(
         for line_text in details['text_lines']:
             draw.text(
                 (int(details['text_block_start_pos'][0]), int(current_text_y)),
-                line_text, 
-                font=font_text, 
-                fill=text_color
+                line_text, font=font_text, fill=text_color, anchor="lt"
             )
             current_text_y += TEXT_LINE_BBOX_HEIGHT + TEXT_LINE_LEADING
             
         # Classification Badge
-        if details['badge_exists']:
-            badge_path = msg_obj.classification.png_path("white") # Assuming "white" theme for badge
+        if details['badge_exists'] and details['badge_path']:
             try:
-                badge_img = Image.open(badge_path).convert("RGBA")
+                badge_img = Image.open(details['badge_path']).convert("RGBA")
                 badge_img_resized = badge_img.resize((BADGE_SIZE, BADGE_SIZE), Image.LANCZOS)
                 canvas.paste(
                     badge_img_resized, 
                     (int(details['badge_pos'][0]), int(details['badge_pos'][1])), 
-                    badge_img_resized # Use alpha channel of badge for transparency
+                    badge_img_resized
                 )
             except FileNotFoundError:
-                print(f"Badge file not found: {badge_path}")
+                print(f"Badge file not found: {details['badge_path']}")
             except IOError:
-                print(f"Could not open or process badge file: {badge_path}")
+                print(f"Could not open badge: {details['badge_path']}")
 
-    # Save the final image
     canvas.save(output_path)
     print(f"Reddit chain image saved to {output_path}")
 
@@ -620,10 +582,10 @@ if __name__ == "__main__":
         # TextMessage("", "I want to date aant to dfdsfda fsaeaaaaa", Classification.MEGABLUNDER, username="asfdsafs", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
         # TextMessage("", "I want to date and fuck fdsjkfldjslfsthe fdsafdsafdkslafjdklsjflasldfsa", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
         # TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        # TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        # TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        # TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        # TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "u right date aI want to date a", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
