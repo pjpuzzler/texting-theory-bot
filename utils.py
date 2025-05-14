@@ -590,6 +590,14 @@ def old_handle_top_level(cid: str,
     render_queue.append((pid, cid, out_path))
 
 
+import re
+
+def extract_display_text(md_text):
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', md_text)
+    text = re.sub(r'https?://www\.reddit\.com/media[^\s]*', '[image]', text)
+    # text = re.sub(r'(\*\*|__|\*|_|~~|`|>!|!<|\^)', '', text)
+    return text
+
 def handle_annotate(comments_json):
     render_queue = []
 
@@ -659,7 +667,7 @@ def handle_annotate(comments_json):
                 author = c.author
                 msgs.append(TextMessage(
                     side        = "right",
-                    content     = c.body,
+                    content     = extract_display_text(c.body),
                     classification = Classification.GOOD,   # placeholder
                     unsent      = False,
                     username    = author.name if author else "[deleted]",
