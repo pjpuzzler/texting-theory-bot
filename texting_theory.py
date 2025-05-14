@@ -390,10 +390,13 @@ def render_reddit_chain(
         msg_bottom = y        # from top of content area
         if len(lines) == 1:
             # if only one line, add a bit of extra space
-            msg_bottom += 58
+            msg_bottom += 52
         elif len(lines) == 2:
             # if two lines, add a bit of extra space
-            msg_bottom += 22
+            msg_bottom += 26
+        elif len(lines) == 3:
+            # if three lines, add a bit of extra space
+            msg_bottom += 14
 
         # 1c) compute where the badge ends
         # badge is vertically centered in the username+text block
@@ -482,7 +485,7 @@ def render_reddit_chain(
 
         # draw badge at its offset
         content_block_h = uname_h + int(pad * 1.5) + sum(measure(l, font_text)[1] + 6 for l in wrapped[idx])
-        badge_offset    = (content_block_h - badge_sz)//2 + 106
+        badge_offset    = (content_block_h - badge_sz)//2 + (108 + (7 * (len(wrapped[idx]) - 1)))
         bx = ux + max_ws[idx] + pad
         by = content_y0 + badge_offset
         bp = msg.classification.png_path("white")
@@ -517,14 +520,14 @@ if __name__ == "__main__":
     # render_conversation(msgs, color_data_left, color_data_right, data["color"]["background_hex"], "final_chat.png")
     # print('rendered image')
     render_reddit_chain([
-        TextMessage("", "I want to date a I want to date a I want to date a I want to date aI want to date a", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
+        TextMessage("", "I want to date a I want to date a I want to date aI want to date a", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
         TextMessage("", "I want to date and fuck the bos", Classification.MEGABLUNDER, username="Equal-Bowl-377", avatar_url="https://styles.redditmedia.com/t5_58b4ep/styles/profileIcon_snooc8df9e5b-e1ee-451d-ba16-265db020b93e-headshot.png?width=256&height=256&crop=256:256,smart&s=0a62fc9c851c8ef3571abfa282d08ad5df4cc0ac"),
-        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
-        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
+        # TextMessage("", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "Where's the goddamn bot at???", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
         # TextMessage("", "It's difficult because most of the exchanges are really short and if the bot can give a GM based on 3 messages then it will make more mistakes in giving it when underserved. We need more longer exchanges and then ai think it will be easier for the bot to give GM", Classification.EXCELLENT, username="Equal-Bowl-377", avatar_url="https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png"),
                          ], "out2.jpg")
