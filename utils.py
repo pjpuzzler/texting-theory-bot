@@ -594,7 +594,7 @@ import re
 
 def extract_display_text(md_text):
     text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', md_text)
-    text = re.sub(r'https?://www\.reddit\.com/media[^\s]*', '[image]', text)
+    text = re.sub(r'https?://preview\.redd\.it/[^\s\)]*', '[image]', text)
     # text = re.sub(r'(\*\*|__|\*|_|~~|`|>!|!<|\^)', '', text)
     return text
 
