@@ -675,7 +675,7 @@ def handle_annotate(comments_json):
                 )
                 if text_message.username == 'texting-theory-bot':
                     if text_message.content == '[image]':
-                        text_message.content = '[!annotate Image]'
+                        text_message.content = '[!annotate Result]'
                     elif text_message.content.startswith('**Game Analysis**'):
                         text_message.content = '[Game Analysis]'
                 msgs.append(text_message)
