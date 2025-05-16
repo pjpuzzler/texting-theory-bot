@@ -665,14 +665,20 @@ def handle_annotate(comments_json):
             msgs = []
             for i, c in enumerate(chain):
                 author = c.author
-                msgs.append(TextMessage(
+                text_message = TextMessage(
                     side        = "right",
                     content     = extract_display_text(c.body),
                     classification = Classification.GOOD,   # placeholder
                     unsent      = False,
                     username    = author.name if author else "[deleted]",
                     avatar_url  = getattr(author, "icon_img", None)
-                ))
+                )
+                if text_message.username == 'texting-theory-bot':
+                    if text_message.content == '[image]':
+                        text_message.content = '[!annotate Image]'
+                    elif text_message.content.startswith('**Game Analysis**'):
+                        text_message.content = '[Game Analysis]'
+                msgs.append(text_message)
                 print(f"{msgs[-1].username}: {msgs[-1].content}")
 
             # apply the code
