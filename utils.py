@@ -97,7 +97,7 @@ def get_post_by_id(post_id):
     return reddit.submission(id=post_id)
 
 
-def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[TextMessage] | None, str]:
+def apply_annotation_code(messages: list[TextMessage], code: str, reply: bool = True) -> tuple[list[TextMessage] | None, str]:
     updated_msgs = []
     i = 0
     for j, ch in enumerate(code):
@@ -110,7 +110,7 @@ def apply_annotation_code(messages: list[TextMessage], code: str) -> tuple[list[
         if not classification:
             return None, 'char'  # Invalid input
 
-        negated = (j > 0 and code[j - 1] == '-')
+        negated = (not reply and j > 0 and code[j - 1] == '-')
 
         try:
             msg = messages[i]
@@ -628,13 +628,13 @@ def handle_annotate(comments_json):
                 # and continue
                 continue
 
-            if "-" in code:
-                reply_to_comment(
-                    cid,
-                    "⚠️ Hyphens (`-`) are only allowed in top-level annotations (to flip sides). "
-                    "When annotating a reply-chain, just supply your classification digits."
-                )
-                continue
+            # if "-" in code:
+            #     reply_to_comment(
+            #         cid,
+            #         "⚠️ Hyphens (`-`) are only allowed in top-level annotations (to flip sides). "
+            #         "When annotating a reply-chain, just supply your classification digits."
+            #     )
+            #     continue
 
             # otherwise, walk up the reply chain
             chain = []
@@ -682,7 +682,7 @@ def handle_annotate(comments_json):
                 print(f"{msgs[-1].username}: {msgs[-1].content}")
 
             # apply the code
-            updated, err = apply_annotation_code(msgs, code)
+            updated, err = apply_annotation_code(msgs, code, reply=True)
             if updated is None:
                 msg = {
                     'len':  "⚠️ Your code's length doesn't match the number of messages.",
