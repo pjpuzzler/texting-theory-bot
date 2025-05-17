@@ -97,7 +97,7 @@ def get_post_by_id(post_id):
     return reddit.submission(id=post_id)
 
 
-def apply_annotation_code(messages: list[TextMessage], code: str, reply: bool = True) -> tuple[list[TextMessage] | None, str]:
+def apply_annotation_code(messages: list[TextMessage], code: str, reply: bool = False) -> tuple[list[TextMessage] | None, str]:
     updated_msgs = []
     i = 0
     for j, ch in enumerate(code):
