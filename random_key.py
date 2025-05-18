@@ -1,4 +1,4 @@
 import random
 
-def key_id():
-    ...
+
+def key_id(): ...
