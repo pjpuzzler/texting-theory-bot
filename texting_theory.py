@@ -122,10 +122,6 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
                     category=types.HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY,
                     threshold=types.HarmBlockThreshold.OFF,
                 ),
-                types.SafetySetting(
-                    category=types.HarmCategory.HARM_CATEGORY_UNSPECIFIED,
-                    threshold=types.HarmBlockThreshold.OFF,
-                ),
             ],
         ),
     )
