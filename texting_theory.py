@@ -27,7 +27,6 @@ class Classification(enum.Enum):
     BOOK = "book"
     BRILLIANT = "brilliant"
     CHECKMATE = "checkmate"
-    CLOCK = "clock"
     DRAW = "draw"
     EXCELLENT = "excellent"
     FORCED = "forced"
@@ -38,6 +37,7 @@ class Classification(enum.Enum):
     MISS = "miss"
     MISTAKE = "mistake"
     RESIGN = "resign"
+    TIMEOUT = "timeout"
     WINNER = "winner"
 
     @property

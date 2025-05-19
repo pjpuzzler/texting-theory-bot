@@ -61,7 +61,7 @@ DIGIT_TO_CLASS = {
     "#": Classification.CHECKMATE,
     "r": Classification.RESIGN,
     "d": Classification.DRAW,
-    "c": Classification.CLOCK,
+    "t": Classification.TIMEOUT,
     "w": Classification.WINNER,
 }
 
