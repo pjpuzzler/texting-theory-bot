@@ -40,17 +40,9 @@ class Classification(enum.Enum):
     RESIGN = "resign"
     WINNER = "winner"
 
-    def png_path(self, color: str) -> str:
-        match self:
-            case (
-                Classification.CHECKMATE
-                | Classification.DRAW
-                | Classification.RESIGN
-                | Classification.CLOCK
-            ):
-                return f"1024x/{self.value}_{color}_1024x.png"
-            case _:
-                return f"1024x/{self.value}_1024x.png"
+    @property
+    def png_path(self) -> str:
+        return f"1024x/{self.value}_1024x.png"
 
 
 def api_key():
@@ -327,9 +319,7 @@ def render_conversation(
             )
         )
 
-        badge = Image.open(
-            m.classification.png_path("white" if m.side == "right" else "black")
-        ).resize((badge_sz, badge_sz))
+        badge = Image.open(m.classification.png_path).resize((badge_sz, badge_sz))
         if badge.mode != "RGBA":
             badge = badge.convert("RGBA")
         by = y + (bh - badge_sz) // 2
@@ -481,7 +471,7 @@ def render_reddit_chain(
                 else 0
             )
 
-        badge_path_check = msg.classification.png_path("white")
+        badge_path_check = msg.classification.png_path
         badge_exists_check = os.path.exists(badge_path_check)
 
         message_layouts.append(
