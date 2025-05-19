@@ -22,11 +22,12 @@ from random_key import key_id
 
 
 class Classification(enum.Enum):
+    ABANDON = "abandon"
     BEST = "best"
     BLUNDER = "blunder"
     BOOK = "book"
     BRILLIANT = "brilliant"
-    CHECKMATE = "checkmate"
+    CHECKMATED = "checkmated"
     DRAW = "draw"
     EXCELLENT = "excellent"
     FORCED = "forced"

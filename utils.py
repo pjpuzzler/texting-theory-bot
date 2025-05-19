@@ -58,9 +58,10 @@ DIGIT_TO_CLASS = {
     "0": Classification.MEGABLUNDER,
     "b": Classification.BOOK,
     "f": Classification.FORCED,
-    "#": Classification.CHECKMATE,
-    "r": Classification.RESIGN,
+    "a": Classification.ABANDON,
+    "c": Classification.CHECKMATED,
     "d": Classification.DRAW,
+    "r": Classification.RESIGN,
     "t": Classification.TIMEOUT,
     "w": Classification.WINNER,
 }
