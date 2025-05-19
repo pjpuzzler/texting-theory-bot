@@ -44,7 +44,7 @@ class Classification(enum.Enum):
     def png_path(self, color: str) -> str:
         match self:
             case Classification.CHECKMATED:
-                return f"1024x/{self.value}_{color}1024x.png"
+                return f"1024x/{self.value}_{color}_1024x.png"
             case _:
                 return f"1024x/{self.value}_1024x.png"
 
