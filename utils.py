@@ -585,7 +585,7 @@ def old_handle_top_level(
         return
 
     # 2) re-parse the LLM messages
-    msgs = parse_llm_response(post_data)
+    msgs = parse_llm_response(post_data, ignore_classifications=True)
     if len(msgs) > 20:
         reply_to_comment(
             cid,
@@ -727,7 +727,7 @@ def handle_annotate(comments_json):
                 text_message = TextMessage(
                     side="right",
                     content=extract_display_text(c.body),
-                    classification=Classification.GOOD,  # placeholder
+                    classification=None,  # placeholder
                     unsent=False,
                     username=author.name if author else "[deleted]",
                     avatar_url=getattr(author, "icon_img", None),
