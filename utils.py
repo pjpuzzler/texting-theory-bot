@@ -762,6 +762,35 @@ def handle_annotate(comments_json):
     print("All annotate commands handled.")
 
 
+def extract_image_urls(post):
+    image_urls = []
+    # Handle direct image posts
+    if hasattr(post, "post_hint") and post.post_hint == "image":
+        image_urls = [post.url]
+    # Handle gallery/slideshow posts
+    elif hasattr(post, "gallery_data") and hasattr(post, "media_metadata"):
+        for item in post.gallery_data["items"]:
+            u = post.media_metadata[item["media_id"]]["s"]["u"].replace("&amp;", "&")
+            image_urls.append(u)
+    # Handle preview images
+    elif hasattr(post, "preview") and "images" in post.preview:
+        image_urls = [post.preview["images"][0]["source"]["url"].replace("&amp;", "&")]
+    # Handle crossposts
+    elif hasattr(post, "crosspost_parent_list") and post.crosspost_parent_list:
+        # Use the first crosspost parent
+        parent = post.crosspost_parent_list[0]
+
+        # Create a dummy object with the parent's attributes for compatibility
+        class Dummy:
+            pass
+
+        parent_post = Dummy()
+        for k, v in parent.items():
+            setattr(parent_post, k, v)
+        image_urls = extract_image_urls(parent_post)
+    return image_urls
+
+
 def handle_new_posts(post_id=None):
     # for post in get_recent_posts():
     # for post in get_top_posts():
@@ -781,19 +810,7 @@ def handle_new_posts(post_id=None):
             print("Already analyzed")
             continue
 
-        image_urls = []
-        if hasattr(post, "post_hint") and post.post_hint == "image":
-            image_urls = [post.url]
-        elif hasattr(post, "gallery_data") and hasattr(post, "media_metadata"):
-            for item in post.gallery_data["items"]:
-                u = post.media_metadata[item["media_id"]]["s"]["u"].replace(
-                    "&amp;", "&"
-                )
-                image_urls.append(u)
-        elif hasattr(post, "preview") and "images" in post.preview:
-            image_urls = [
-                post.preview["images"][0]["source"]["url"].replace("&amp;", "&")
-            ]
+        image_urls = extract_image_urls(post)
 
         if not image_urls:
             print("No images found")
