@@ -94,8 +94,9 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT + extra,
             temperature=0.0,
-            top_k=1,
+            top_k=1.0,
             seed=63,
+            thinking_config=types.ThinkingConfig(thinking_budget=24576),
             safety_settings=[
                 types.SafetySetting(
                     category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
