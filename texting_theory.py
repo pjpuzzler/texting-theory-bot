@@ -85,8 +85,8 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
         extra = ""
     image = client.files.upload(file=image_path)
     response = client.models.generate_content(
-        model="gemini-2.5-pro-exp-03-25",
-        # model="gemini-2.5-flash-preview-05-20",
+        # model="gemini-2.5-pro-exp-03-25",
+        model="gemini-2.5-flash-preview-05-20",
         contents=[
             types.Part.from_text(text=f'Post Title: "{title}"\n\nPost Body: "{body}"'),
             types.Part.from_uri(file_uri=image.uri, mime_type="image/jpeg"),
