@@ -435,12 +435,13 @@ def post_comment_image(
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("!annotate guide + classification meanings", delay=5)
+        page.keyboard.type("about the bot", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
+        # page.keyboard.type("https://support.chess.com/en/articles/8584089-how-does-game-review-work#h_49f5656333", delay=5) https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqefbfm/
         page.keyboard.type(
-            "https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/",
+            "https://www.reddit.com/r/TextingTheory/comments/1k8fed9/utextingtheorybot/",
             delay=5,
         )
 
@@ -466,13 +467,12 @@ def post_comment_image(
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("about the bot", delay=5)
+        page.keyboard.type("!annotate guide + classification meanings", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        # page.keyboard.type("https://support.chess.com/en/articles/8584089-how-does-game-review-work#h_49f5656333", delay=5) https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqefbfm/
         page.keyboard.type(
-            "https://www.reddit.com/r/TextingTheory/comments/1k8fed9/utextingtheorybot/",
+            "https://www.reddit.com/r/TextingTheory/comments/1kdxh6x/comment/mqk2jzn/",
             delay=5,
         )
 
