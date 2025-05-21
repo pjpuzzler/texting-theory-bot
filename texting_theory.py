@@ -34,6 +34,7 @@ class Classification(enum.Enum):
     GOOD = "good"
     GREAT = "great"
     INACCURACY = "inaccuracy"
+    INTERESTING = "interesting"
     MEGABLUNDER = "megablunder"
     MISS = "miss"
     MISTAKE = "mistake"
@@ -44,9 +45,9 @@ class Classification(enum.Enum):
     def png_path(self, color: str) -> str:
         match self:
             case Classification.CHECKMATED:
-                return f"1024x/{self.value}_{color}_1024x.png"
+                return f"badges/{self.value}_{color}.png"
             case _:
-                return f"1024x/{self.value}_1024x.png"
+                return f"badges/{self.value}.png"
 
 
 def api_key():

@@ -1,6 +1,7 @@
 /.DS_Store
 test.*
 .env
+.DS_Store
 *.png
 *.jpeg
 *.jpg
@@ -8,6 +9,6 @@ reddit_storage.json
 *.txt
 !system_prompt_e.txt
 !requirements.txt
-!1024x/*.png
+!badges/*.png
 __pycache__
 test2.js
