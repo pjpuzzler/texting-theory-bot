@@ -435,7 +435,7 @@ def post_comment_image(
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("!annotate guide", delay=5)
+        page.keyboard.type("!annotate guide + classification meanings", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
