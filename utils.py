@@ -467,7 +467,38 @@ def post_comment_image(
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("!annotate guide & classification meanings", delay=5)
+        page.keyboard.type("what do the symbols mean?", delay=5)
+        page.wait_for_timeout(100)
+        page.keyboard.press("Tab")
+        page.wait_for_timeout(100)
+        page.keyboard.type(
+            "https://www.reddit.com/r/TextingTheory/comments/1ksad21/classifications_badges_explained/",
+            delay=5,
+        )
+
+        save_link_button = page.get_by_test_id("btn-save-link")
+        save_link_button.wait_for(state="visible", timeout=5000)
+        save_link_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(100)
+        save_link_button.click()
+
+        page.wait_for_timeout(50)
+
+        page.keyboard.press("Enter")
+
+        page.wait_for_timeout(50)
+
+        link_button = page.locator('button:has(svg[icon-name="link-outline"])')
+        link_button.wait_for(state="visible", timeout=5000)
+        link_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(100)
+        link_button.click()
+
+        page.wait_for_timeout(100)
+
+        page.keyboard.press("Tab")
+        page.wait_for_timeout(100)
+        page.keyboard.type("!annotate guide", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
