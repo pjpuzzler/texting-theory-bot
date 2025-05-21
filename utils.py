@@ -58,6 +58,7 @@ DIGIT_TO_CLASS = {
     "0": Classification.MEGABLUNDER,
     "b": Classification.BOOK,
     "f": Classification.FORCED,
+    "i": Classification.INTERESTING,
     "a": Classification.ABANDON,
     "c": Classification.CHECKMATED,
     "d": Classification.DRAW,
