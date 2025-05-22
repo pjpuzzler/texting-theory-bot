@@ -95,11 +95,11 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
             types.Part.from_text(text=f'Post Title: "{title}"\n\nPost Body: "{body}"'),
             types.Part.from_uri(file_uri=main_image.uri, mime_type="image/jpeg"),
             types.Part.from_text(
-                "Here is a blank example of a Hinge prompt from left being replied to by right (pink bubble with tail pointing to right):"
+                text="Here is a blank example of a Hinge prompt from left being replied to by right (pink bubble with tail pointing to right):"
             ),
             types.Part.from_uri(file_uri=example_r.uri, mime_type="image/png"),
             types.Part.from_text(
-                "Here is a blank example of a Hinge prompt from right being replied to by left (pink bubble with tail pointing to left):"
+                text="Here is a blank example of a Hinge prompt from right being replied to by left (pink bubble with tail pointing to left):"
             ),
             types.Part.from_uri(file_uri=example_l.uri, mime_type="image/png"),
         ],
