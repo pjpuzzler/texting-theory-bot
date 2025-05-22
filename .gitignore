@@ -10,5 +10,6 @@ reddit_storage.json
 !system_prompt_e.txt
 !requirements.txt
 !badges/*.png
+!examples/*.png
 __pycache__
 test2.js

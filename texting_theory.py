@@ -84,13 +84,24 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
         extra = "\n\nP.S. Today is Monday, which means you have the special ability to classify a message as a MEGABLUNDER! If a message is truly deserving of something even worse than a BLUNDER, you have the ability today to give it the rating it truly deserves. Use it sparingly, only for the worst-of-the-worst incomprehesibly bad BLUNDERs; the absolute worst move you could have played there. "
     else:
         extra = ""
-    image = client.files.upload(file=image_path)
+    main_image = client.files.upload(file=image_path)
+    example_r = client.files.upload(file="examples/r.png")
+    example_l = client.files.upload(file="examples/l.png")
+
     response = client.models.generate_content(
         # model="gemini-2.5-pro-exp-03-25",
         model="gemini-2.5-flash-preview-05-20",
         contents=[
             types.Part.from_text(text=f'Post Title: "{title}"\n\nPost Body: "{body}"'),
-            types.Part.from_uri(file_uri=image.uri, mime_type="image/jpeg"),
+            types.Part.from_uri(file_uri=main_image.uri, mime_type="image/jpeg"),
+            types.Part.from_text(
+                "Here is a blank example of a Hinge prompt from left being replied to by right (pink bubble with tail pointing to right):"
+            ),
+            types.Part.from_uri(file_uri=example_r.uri, mime_type="image/png"),
+            types.Part.from_text(
+                "Here is a blank example of a Hinge prompt from right being replied to by left (pink bubble with tail pointing to left):"
+            ),
+            types.Part.from_uri(file_uri=example_l.uri, mime_type="image/png"),
         ],
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT + extra,
