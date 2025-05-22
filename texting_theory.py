@@ -131,7 +131,8 @@ def call_llm_on_image(image_path: str, title: str, body: str) -> dict:
 def parse_llm_response(data, ignore_classifications=False) -> List[TextMessage]:
     msgs = []
     no_book = False
-    for item in data.get("messages", []):
+    messages = data.get("messages", [])
+    for i, item in enumerate(messages):
         if ignore_classifications:
             classification = None
         else:
@@ -139,6 +140,22 @@ def parse_llm_response(data, ignore_classifications=False) -> List[TextMessage]:
             if classification is not Classification.BOOK:
                 no_book = True
             elif no_book:
+                classification = Classification.GOOD
+
+            if classification in [
+                Classification.CHECKMATED,
+                Classification.RESIGN,
+                Classification.ABANDON,
+                Classification.TIMEOUT,
+                Classification.DRAW,
+                Classification.WINNER,
+            ] and not (
+                (i == len(messages) - 1)
+                or (
+                    (i == len(messages) - 2)
+                    and (messages[-1]["classification"] == "WINNER")
+                )
+            ):
                 classification = Classification.GOOD
         msgs.append(
             TextMessage(
