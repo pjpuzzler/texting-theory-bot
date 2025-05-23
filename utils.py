@@ -857,11 +857,11 @@ def handle_new_posts(post_id=None):
                     f.write(r.content)
                 input_paths.append(path)
 
-            stitched = os.path.join(tmpdir, "stitched.jpg")
+            # stitched = os.path.join(tmpdir, "stitched.jpg")
             out_path = os.path.join(tmpdir, "out.jpg")
-            stitch_images_vertically(input_paths, stitched)
+            # stitch_images_vertically(input_paths, stitched)
             print(f"Analyzing post with title: {post.title}")
-            data = call_llm_on_image(stitched, post.title, post.selftext)
+            data = call_llm_on_image(input_paths, post.title, post.selftext)
 
             if data.get("is_convo") is False:
                 print("Not a conversation, skipping")
