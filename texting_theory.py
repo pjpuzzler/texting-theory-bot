@@ -145,7 +145,7 @@ def call_llm_on_image(image_paths: list[str], title: str, body: str) -> dict:
     )
     #   print(response.__dict__)
     print(f"Result: {response.text}")
-    text = response[response.text.find("```json") :]
+    text = response.text[response.text.find("```json") :]
     data = json.loads(text.removeprefix("```json\n").removesuffix("\n```"))
     return data
 
