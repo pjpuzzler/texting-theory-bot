@@ -309,7 +309,7 @@ def post_comment_image(
             eval_str_right = True
         elif evaluation[0] == "m":
             b_squares, w_squares = TOTAL_SQUARES, 0
-            eval_str = "0-1" if evaluation == "m" else evaluation
+            eval_str = "0-1" if evaluation == "m" else evaluation.upper()
             eval_str_right = False
         else:
             evaluation = float(evaluation)
