@@ -323,9 +323,9 @@ def post_comment_image(
 
         eval_bar = BLACK_SQUARE * b_squares + WHITE_SQUARE * w_squares
         if eval_str_right:
-            eval_bar = eval_bar[:-1] + eval_str
+            eval_bar = eval_bar + eval_str
         else:
-            eval_bar = eval_str + eval_bar[1:]
+            eval_bar = eval_str + eval_bar
 
         page.keyboard.type(eval_bar, delay=10)
 
