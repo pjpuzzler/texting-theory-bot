@@ -1,3 +1,4 @@
+import math
 import os
 import praw
 import requests
@@ -198,6 +199,29 @@ def format_counts(messages, color_left, color_right, elo_left, elo_right):
     return "\n".join(lines)
 
 
+BLACK_SQUARE = "⬛"
+WHITE_SQUARE = "⬜"
+
+
+def eval_to_emoji_squares(eval_abs, total_squares: int = 16, max_pawn: float = 4.0):
+    # 1) Saturate at max_pawn
+    if eval_abs >= max_pawn:
+        w_squares = total_squares - 1
+    else:
+        # 2) Arctan mapping for diminishing returns
+        scale = max_pawn / 2.0
+        frac = 0.5 + math.atan(eval_abs / scale) / math.pi
+        # clamp to [0,1]
+        frac = min(max(frac, 0.0), 1.0)
+        # convert to square count
+        w_squares = int(round(frac * total_squares))
+        # ensure at least one white and one black remain
+        w_squares = min(max(w_squares, 1), total_squares - 1)
+
+    b_squares = total_squares - w_squares
+    return b_squares, w_squares
+
+
 def post_comment_image(
     post_id,
     file_path,
@@ -207,6 +231,7 @@ def post_comment_image(
     elo_left,
     elo_right,
     opening,
+    evaluation,
     best_continuation,
 ):
     counts = {c: [0, 0] for c in HUMANIZED_ORDER}
@@ -276,6 +301,37 @@ def post_comment_image(
         file_chooser.set_files(file_path)
 
         page.wait_for_timeout(200)
+
+        TOTAL_SQUARES = 16
+        if evaluation[0] == "M":
+            b_squares, w_squares = 0, TOTAL_SQUARES
+            eval_str = "1-0" if evaluation == "M" else evaluation
+            eval_str_right = True
+        elif evaluation[0] == "m":
+            b_squares, w_squares = TOTAL_SQUARES, 0
+            eval_str = "0-1" if evaluation == "m" else evaluation
+            eval_str_right = False
+        else:
+            evaluation = float(evaluation)
+            eval_str_right = evaluation >= 0
+            evaluation = abs(evaluation)
+            eval_str = f"{evaluation:.1f}" if evaluation < 10 else f"{evaluation:.0f}"
+
+            b_squares, w_squares = eval_to_emoji_squares(evaluation)
+            if not eval_str_right:
+                b_squares, w_squares = w_squares, b_squares
+
+        eval_bar = BLACK_SQUARE * b_squares + WHITE_SQUARE * w_squares
+        if eval_str_right:
+            eval_bar = eval_bar[:-2] + eval_str + eval_bar[-1]
+        else:
+            eval_bar = eval_bar[0] + eval_str + eval_bar[2:]
+
+        page.keyboard.type(eval_bar, delay=10)
+
+        page.keyboard.press("Enter")
+
+        page.wait_for_timeout(50)
 
         if best_continuation is not None:
             if best_continuation != "Resign":
@@ -897,6 +953,7 @@ def handle_new_posts(post_id=None):
                     elo_left,
                     elo_right,
                     data.get("opening"),
+                    data["evaluation"],
                     None,
                 )
 
