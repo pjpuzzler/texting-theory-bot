@@ -911,6 +911,8 @@ def save_embeddings(embeddings):
 
 
 def find_similar_convos(new_embedding, all_embeddings, threshold=0.85):
+    if not all_embeddings:
+        return []
     model = get_embed_model()
     sims = util.cos_sim([new_embedding], [e["embedding"] for e in all_embeddings])[0]
     similar = []
