@@ -234,6 +234,7 @@ def post_comment_image(
     opening,
     evaluation,
     best_continuation,
+    similar_convos=None,
 ):
     counts = {c: [0, 0] for c in HUMANIZED_ORDER}
     has_message = [False, False]
@@ -481,6 +482,15 @@ def post_comment_image(
             page.keyboard.type("Megablunder Monday!", delay=5)
             page.wait_for_timeout(50)
             page.keyboard.press("Enter")
+
+        if similar_convos:
+            page.keyboard.type("**Similar conversations:**", delay=10)
+            page.keyboard.press("Enter")
+            for s in similar_convos:
+                page.keyboard.type(
+                    f"- [Link](https://reddit.com/comments/{s['post_id']})", delay=5
+                )
+                page.keyboard.press("Enter")
 
         link_button = page.locator('button:has(svg[icon-name="link-outline"])')
         link_button.wait_for(state="visible", timeout=5000)
@@ -976,6 +986,18 @@ def handle_new_posts(post_id=None):
 
                 all_embeddings = load_embeddings()
                 similar = find_similar_convos(new_embedding, all_embeddings)
+
+                valid_similar = []
+                for s in similar:
+                    try:
+                        sim_post = get_post_by_id(s["post_id"])
+                        if (
+                            not sim_post.removed_by_category
+                            and not sim_post.selftext.lower().startswith("[deleted")
+                        ):
+                            valid_similar.append(s)
+                    except Exception:
+                        continue
                 if similar:
                     print("Similar conversations found:")
                     for s in similar:
@@ -1022,6 +1044,7 @@ def handle_new_posts(post_id=None):
                     data.get("opening"),
                     data["evaluation"],
                     None,
+                    similar_convos=valid_similar,
                 )
 
                 store_post_analysis_json(post.id, data)
