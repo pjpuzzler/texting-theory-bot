@@ -5,6 +5,7 @@ import requests
 import tempfile
 import time
 import json
+from sentence_transformers import SentenceTransformer, util
 from datetime import datetime, timezone, timedelta
 from PIL import Image
 from pathlib import Path
@@ -879,6 +880,46 @@ def extract_image_urls(post):
     return image_urls
 
 
+EMBEDDINGS_FILE = "convo_embeddings.json"
+EMBED_MODEL = None
+
+
+def get_embed_model():
+    global EMBED_MODEL
+    if EMBED_MODEL is None:
+        EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+    return EMBED_MODEL
+
+
+def format_convo_for_embedding(messages):
+    lines = []
+    for m in messages:
+        lines.append(f"{m.side}: {m.content}")
+    return "\n".join(lines)
+
+
+def load_embeddings():
+    if not os.path.exists(EMBEDDINGS_FILE):
+        return []
+    with open(EMBEDDINGS_FILE, "r") as f:
+        return json.load(f)
+
+
+def save_embeddings(embeddings):
+    with open(EMBEDDINGS_FILE, "w") as f:
+        json.dump(embeddings, f)
+
+
+def find_similar_convos(new_embedding, all_embeddings, threshold=0.85):
+    model = get_embed_model()
+    sims = util.cos_sim([new_embedding], [e["embedding"] for e in all_embeddings])[0]
+    similar = []
+    for idx, score in enumerate(sims):
+        if score > threshold:
+            similar.append(all_embeddings[idx])
+    return similar
+
+
 def handle_new_posts(post_id=None):
     # for post in get_recent_posts():
     # for post in get_top_posts():
@@ -927,6 +968,30 @@ def handle_new_posts(post_id=None):
                     "color"
                 ].get("right")
                 msgs = parse_llm_response(data)
+                convo_text = format_convo_for_embedding(msgs)
+                model = get_embed_model()
+                new_embedding = model.encode(convo_text).tolist()
+
+                all_embeddings = load_embeddings()
+                similar = find_similar_convos(new_embedding, all_embeddings)
+                if similar:
+                    print("Similar conversations found:")
+                    for s in similar:
+                        print(
+                            f"- https://reddit.com/comments/{s['post_id']} (score: {s.get('score', '?')})"
+                        )
+                    # You can add this info to your Reddit comment
+
+                # Save new embedding
+                all_embeddings.append(
+                    {
+                        "post_id": post.id,
+                        "embedding": new_embedding,
+                        "convo_text": convo_text,
+                    }
+                )
+                save_embeddings(all_embeddings)
+
                 print("Parsed LLM response")
                 render_conversation(
                     msgs,
