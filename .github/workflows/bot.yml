@@ -44,6 +44,21 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
+      
+      - name: Cache HuggingFace and Torch models
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/torch
+          key: ${{ runner.os }}-hf-torch-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-hf-torch-
+
+      - name: Pre-download sentence-transformers model
+        run: |
+          source .venv/bin/activate
+          python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
     
       - name: Cache Playwright browsers
         uses: actions/cache@v3
