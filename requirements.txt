@@ -7,4 +7,3 @@ emoji==1.6.3
 pilmoji
 playwright
 cryptography
-sentence-transformers

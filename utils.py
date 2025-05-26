@@ -5,7 +5,6 @@ import requests
 import tempfile
 import time
 import json
-from sentence_transformers import SentenceTransformer, util
 from datetime import datetime, timezone, timedelta
 from PIL import Image
 from pathlib import Path
@@ -234,7 +233,6 @@ def post_comment_image(
     opening,
     evaluation,
     best_continuation,
-    similar_convos=None,
 ):
     counts = {c: [0, 0] for c in HUMANIZED_ORDER}
     has_message = [False, False]
@@ -482,15 +480,6 @@ def post_comment_image(
             page.keyboard.type("Megablunder Monday!", delay=5)
             page.wait_for_timeout(50)
             page.keyboard.press("Enter")
-
-        if similar_convos:
-            page.keyboard.type("**Similar conversations:**", delay=10)
-            page.keyboard.press("Enter")
-            for s in similar_convos:
-                page.keyboard.type(
-                    f"- [Link](https://reddit.com/comments/{s['post_id']})", delay=5
-                )
-                page.keyboard.press("Enter")
 
         link_button = page.locator('button:has(svg[icon-name="link-outline"])')
         link_button.wait_for(state="visible", timeout=5000)
@@ -890,48 +879,6 @@ def extract_image_urls(post):
     return image_urls
 
 
-EMBEDDINGS_FILE = "convo_embeddings.json"
-EMBED_MODEL = None
-
-
-def get_embed_model():
-    global EMBED_MODEL
-    if EMBED_MODEL is None:
-        EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-    return EMBED_MODEL
-
-
-def format_convo_for_embedding(messages):
-    lines = []
-    for m in messages:
-        lines.append(f"{m.side}: {m.content}")
-    return "\n".join(lines)
-
-
-def load_embeddings():
-    if not os.path.exists(EMBEDDINGS_FILE):
-        return []
-    with open(EMBEDDINGS_FILE, "r") as f:
-        return json.load(f)
-
-
-def save_embeddings(embeddings):
-    with open(EMBEDDINGS_FILE, "w") as f:
-        json.dump(embeddings, f)
-
-
-def find_similar_convos(new_embedding, all_embeddings, threshold=0.85):
-    if not all_embeddings:
-        return []
-    model = get_embed_model()
-    sims = util.cos_sim([new_embedding], [e["embedding"] for e in all_embeddings])[0]
-    similar = []
-    for idx, score in enumerate(sims):
-        if score > threshold:
-            similar.append(all_embeddings[idx])
-    return similar
-
-
 def handle_new_posts(post_id=None):
     # for post in get_recent_posts():
     # for post in get_top_posts():
@@ -980,42 +927,6 @@ def handle_new_posts(post_id=None):
                     "color"
                 ].get("right")
                 msgs = parse_llm_response(data)
-                convo_text = format_convo_for_embedding(msgs)
-                model = get_embed_model()
-                new_embedding = model.encode(convo_text).tolist()
-
-                all_embeddings = load_embeddings()
-                similar = find_similar_convos(new_embedding, all_embeddings)
-
-                valid_similar = []
-                for s in similar:
-                    try:
-                        sim_post = get_post_by_id(s["post_id"])
-                        if (
-                            not sim_post.removed_by_category
-                            and not sim_post.selftext.lower().startswith("[deleted")
-                        ):
-                            valid_similar.append(s)
-                    except Exception:
-                        continue
-                if similar:
-                    print("Similar conversations found:")
-                    for s in similar:
-                        print(
-                            f"- https://reddit.com/comments/{s['post_id']} (score: {s.get('score', '?')})"
-                        )
-                    # You can add this info to your Reddit comment
-
-                # Save new embedding
-                all_embeddings.append(
-                    {
-                        "post_id": post.id,
-                        "embedding": new_embedding,
-                        "convo_text": convo_text,
-                    }
-                )
-                save_embeddings(all_embeddings)
-
                 print("Parsed LLM response")
                 render_conversation(
                     msgs,
@@ -1044,7 +955,6 @@ def handle_new_posts(post_id=None):
                     data.get("opening"),
                     data["evaluation"],
                     None,
-                    similar_convos=valid_similar,
                 )
 
                 store_post_analysis_json(post.id, data)
