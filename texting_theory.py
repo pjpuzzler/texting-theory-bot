@@ -3,10 +3,11 @@ import json
 import os
 import random
 import textwrap
-import datetime
 import requests
 import io
 from dataclasses import dataclass
+from zoneinfo import ZoneInfo
+from datetime import datetime
 from typing import List
 from pilmoji import Pilmoji
 from pilmoji.source import AppleEmojiSource
@@ -80,7 +81,7 @@ SYSTEM_PROMPT = load_system_prompt()
 
 
 def call_llm_on_image(image_paths: list[str], title: str, body: str) -> dict:
-    if datetime.datetime.now().weekday() == 0:
+    if datetime.now(ZoneInfo("America/New_York")).weekday() == 0:
         extra = "\n\nP.S. Today is Monday, which means you have the special ability to classify a message as a MEGABLUNDER! If a message is truly deserving of something even worse than a BLUNDER, you have the ability today to give it the rating it truly deserves. Use it sparingly, only for the worst-of-the-worst incomprehesibly bad BLUNDERs; the absolute worst move you could have played there. "
     else:
         extra = ""
