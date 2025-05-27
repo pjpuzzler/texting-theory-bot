@@ -5,9 +5,12 @@ import requests
 import tempfile
 import time
 import json
+from google import genai
+from google.genai.types import EmbedContentConfig
 from datetime import datetime, timezone, timedelta
 from PIL import Image
 from pathlib import Path
+from pinecone import Pinecone
 from playwright.sync_api import sync_playwright
 from texting_theory import (
     call_llm_on_image,
@@ -25,6 +28,43 @@ reddit = praw.Reddit(
     password=os.environ["REDDIT_PASSWORD"],
     user_agent="texting-theory-replit/0.2",
 )
+
+
+from google import genai
+from google.genai.types import EmbedContentConfig
+
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+
+def get_convo_str(msgs):
+    return "\n\n".join([f'{m["content"]}' for m in msgs])
+
+
+def get_embedding(convo_str):
+    result = client.models.embed_content(
+        model="text-embedding-004",
+        contents=convo_str,
+        config=EmbedContentConfig(
+            task_type="RETRIEVAL_DOCUMENT",
+        ),
+    )
+    return result.embeddings[0].values
+
+
+pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+index = pc.Index("texting-theory")
+
+
+def pinecone_insert(post_id, embedding, convo_text):
+    vector = {
+        "id": post_id,
+        "values": embedding,
+        "metadata": {"convo_text": convo_text},
+    }
+
+    index.upsert(vectors=[vector])
+    print(f"Uploaded vector for {post_id}")
+
 
 STORAGE_FILE = "reddit_storage.json"
 
@@ -982,6 +1022,10 @@ def handle_new_posts(post_id=None):
                 )
 
                 store_post_analysis_json(post.id, data)
+
+                convo_text = get_convo_str(msgs)
+                embedding = get_embedding(convo_text)
+                pinecone_insert(post.id, embedding, convo_text)
 
                 # img_url = upload_image_to_imgur(out_path)
                 # print("Successfully uploaded to imgur")

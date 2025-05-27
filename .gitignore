@@ -14,3 +14,4 @@ reddit_storage.json
 __pycache__
 test2.js
 test2.ipynb
+*.pkl
