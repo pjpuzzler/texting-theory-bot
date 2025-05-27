@@ -14,6 +14,7 @@ jobs:
       REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
       REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
       PROMPT_KEY: ${{ secrets.PROMPT_KEY }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
