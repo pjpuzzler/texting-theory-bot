@@ -37,7 +37,7 @@ client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 def get_convo_str(msgs):
-    return "\n\n".join([f'{m["content"]}' for m in msgs])
+    return "\n\n".join([f"{m.content}" for m in msgs])
 
 
 def get_embedding(convo_str):
