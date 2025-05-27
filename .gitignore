@@ -13,3 +13,4 @@ reddit_storage.json
 !examples/*.png
 __pycache__
 test2.js
+test2.ipynb

@@ -302,14 +302,38 @@ def post_comment_image(
 
         page.wait_for_timeout(200)
 
+        LOSS_RESULTS = [
+            Classification.CHECKMATED,
+            Classification.ABANDON,
+            Classification.RESIGN,
+            Classification.TIMEOUT,
+        ]
+        left_classifications, right_classifications = [
+            m.classification for m in messages if m.side == "left"
+        ], [m.classification for m in messages if m.side == "right"]
         TOTAL_SQUARES = 16
-        if evaluation[0] == "M":
+        if any(loss_result in left_classifications for loss_result in LOSS_RESULTS):
             b_squares, w_squares = 0, TOTAL_SQUARES
-            eval_str = "1-0" if evaluation == "M" else evaluation
+            eval_str = "1-0"
+            eval_str_right = True
+        elif any(loss_result in right_classifications for loss_result in LOSS_RESULTS):
+            b_squares, w_squares = TOTAL_SQUARES, 0
+            eval_str = "0-1"
+            eval_str_right = False
+        elif (
+            Classification.DRAW in left_classifications
+            or Classification.DRAW in right_classifications
+        ):
+            b_squares, w_squares = TOTAL_SQUARES // 2, TOTAL_SQUARES // 2
+            eval_str = "½-½"
+            eval_str_right = True
+        elif evaluation[0] == "M":
+            b_squares, w_squares = 0, TOTAL_SQUARES
+            eval_str = evaluation
             eval_str_right = True
         elif evaluation[0] == "m":
             b_squares, w_squares = TOTAL_SQUARES, 0
-            eval_str = "0-1" if evaluation == "m" else evaluation.upper()
+            eval_str = evaluation.upper()
             eval_str_right = False
         else:
             evaluation = float(evaluation)
