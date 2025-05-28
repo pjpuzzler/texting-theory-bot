@@ -702,7 +702,7 @@ def post_comment_image(
 
         page.wait_for_timeout(100)
 
-        page.keyboard.press("Shift+Control+ArrowLeft")
+        page.keyboard.press("ControlOrMeta+Shift+ArrowLeft")
         page.keyboard.press("Shift+ArrowUp")
         page.keyboard.press("Shift+ArrowUp")
 
