@@ -342,60 +342,65 @@ def post_comment_image(
 
         page.wait_for_timeout(200)
 
-        LOSS_RESULTS = [
-            Classification.CHECKMATED,
-            Classification.ABANDON,
-            Classification.RESIGN,
-            Classification.TIMEOUT,
-        ]
-        left_classifications, right_classifications = [
-            m.classification for m in messages if m.side == "left"
-        ], [m.classification for m in messages if m.side == "right"]
-        TOTAL_SQUARES = 16
-        if any(loss_result in left_classifications for loss_result in LOSS_RESULTS):
-            b_squares, w_squares = 0, TOTAL_SQUARES
-            eval_str = "1-0"
-            eval_str_right = True
-        elif any(loss_result in right_classifications for loss_result in LOSS_RESULTS):
-            b_squares, w_squares = TOTAL_SQUARES, 0
-            eval_str = "0-1"
-            eval_str_right = False
-        elif (
-            Classification.DRAW in left_classifications
-            or Classification.DRAW in right_classifications
-        ):
-            b_squares, w_squares = TOTAL_SQUARES // 2, TOTAL_SQUARES // 2
-            eval_str = "½-½"
-            eval_str_right = True
-        elif evaluation[0] == "M":
-            b_squares, w_squares = 0, TOTAL_SQUARES
-            eval_str = evaluation
-            eval_str_right = True
-        elif evaluation[0] == "m":
-            b_squares, w_squares = TOTAL_SQUARES, 0
-            eval_str = evaluation.upper()
-            eval_str_right = False
-        else:
-            evaluation = float(evaluation)
-            eval_str_right = evaluation >= 0
-            evaluation = abs(evaluation)
-            eval_str = f"{evaluation:.1f}" if evaluation < 10 else f"{evaluation:.0f}"
+        if evaluation is not None:
+            LOSS_RESULTS = [
+                Classification.CHECKMATED,
+                Classification.ABANDON,
+                Classification.RESIGN,
+                Classification.TIMEOUT,
+            ]
+            left_classifications, right_classifications = [
+                m.classification for m in messages if m.side == "left"
+            ], [m.classification for m in messages if m.side == "right"]
+            TOTAL_SQUARES = 16
+            if any(loss_result in left_classifications for loss_result in LOSS_RESULTS):
+                b_squares, w_squares = 0, TOTAL_SQUARES
+                eval_str = "1-0"
+                eval_str_right = True
+            elif any(
+                loss_result in right_classifications for loss_result in LOSS_RESULTS
+            ):
+                b_squares, w_squares = TOTAL_SQUARES, 0
+                eval_str = "0-1"
+                eval_str_right = False
+            elif (
+                Classification.DRAW in left_classifications
+                or Classification.DRAW in right_classifications
+            ):
+                b_squares, w_squares = TOTAL_SQUARES // 2, TOTAL_SQUARES // 2
+                eval_str = "½-½"
+                eval_str_right = True
+            elif evaluation[0] == "M":
+                b_squares, w_squares = 0, TOTAL_SQUARES
+                eval_str = evaluation
+                eval_str_right = True
+            elif evaluation[0] == "m":
+                b_squares, w_squares = TOTAL_SQUARES, 0
+                eval_str = evaluation.upper()
+                eval_str_right = False
+            else:
+                evaluation = float(evaluation)
+                eval_str_right = evaluation >= 0
+                evaluation = abs(evaluation)
+                eval_str = (
+                    f"{evaluation:.1f}" if evaluation < 10 else f"{evaluation:.0f}"
+                )
 
-            b_squares, w_squares = eval_to_emoji_squares(evaluation)
-            if not eval_str_right:
-                b_squares, w_squares = w_squares, b_squares
+                b_squares, w_squares = eval_to_emoji_squares(evaluation)
+                if not eval_str_right:
+                    b_squares, w_squares = w_squares, b_squares
 
-        eval_bar = BLACK_SQUARE * b_squares + WHITE_SQUARE * w_squares
-        if eval_str_right:
-            eval_bar = eval_bar + eval_str
-        else:
-            eval_bar = eval_str + eval_bar
+            eval_bar = BLACK_SQUARE * b_squares + WHITE_SQUARE * w_squares
+            if eval_str_right:
+                eval_bar = eval_bar + eval_str
+            else:
+                eval_bar = eval_str + eval_bar
 
-        page.keyboard.type(eval_bar, delay=10)
+            page.keyboard.type(eval_bar, delay=10)
 
-        page.keyboard.press("Enter")
+            page.keyboard.press("Enter")
 
-        page.wait_for_timeout(50)
+            page.wait_for_timeout(50)
 
         if best_continuation is not None:
             if best_continuation != "Resign":
@@ -1016,8 +1021,8 @@ def handle_new_posts(post_id=None):
                     None if color_data_right is None else color_data_right["label"],
                     elo_left,
                     elo_right,
-                    data.get("opening"),
-                    data["evaluation"],
+                    data["opening"],
+                    data.get("evaluation"),
                     None,
                 )
 
