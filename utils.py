@@ -66,7 +66,7 @@ def pinecone_insert(post_id, embedding, convo_text):
     print(f"Uploaded vector for {post_id}")
 
 
-def find_similar_conversations(embedding, top_k=5, min_score=0.8):
+def find_similar_conversations(embedding, cur_post_id, top_k=5, min_score=0.8):
     query_result = index.query(vector=embedding, top_k=top_k, include_metadata=True)
 
     return [
@@ -76,7 +76,9 @@ def find_similar_conversations(embedding, top_k=5, min_score=0.8):
             match.metadata["convo_text"],
         )
         for match in query_result.matches
-        if match.score >= min_score and not post_is_deleted(match.id)
+        if match.id != cur_post_id
+        and match.score >= min_score
+        and not post_is_deleted(match.id)
     ]
 
 
@@ -700,7 +702,7 @@ def post_comment_image(
 
         page.wait_for_timeout(100)
 
-        page.keyboard.press("Shift+ArrowUp")
+        page.keyboard.press("Shift+Control+ArrowLeft")
         page.keyboard.press("Shift+ArrowUp")
         page.keyboard.press("Shift+ArrowUp")
 
@@ -1088,7 +1090,7 @@ def handle_new_posts(post_id=None):
                 convo_text = get_convo_str(msgs)
                 embedding = get_embedding(convo_text)
 
-                similar_conversations = find_similar_conversations(embedding)
+                similar_conversations = find_similar_conversations(embedding, post.id)
                 if similar_conversations:
                     print("Similar conversations found:")
                     for i, (post_id, score, convo_text) in enumerate(
