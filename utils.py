@@ -592,7 +592,7 @@ def post_comment_image(
                 page.keyboard.press("Tab")
                 page.wait_for_timeout(100)
                 page.keyboard.type(
-                    f"https://www.reddit.com/r/TextingTheory/{post_id}/",
+                    f"https://www.reddit.com/r/TextingTheory/comments/{post_id}/",
                     delay=5,
                 )
 
