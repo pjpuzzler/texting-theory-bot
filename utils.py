@@ -322,7 +322,7 @@ def post_comment_image(
 
         page.wait_for_timeout(100)
 
-        page.keyboard.type("Game Analysis", delay=10)
+        page.keyboard.type("✪ Game Review", delay=10)
         page.keyboard.press("Enter")
 
         page.wait_for_timeout(50)
