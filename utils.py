@@ -76,7 +76,7 @@ def find_similar_conversations(embedding, top_k=5, min_score=0.8):
             match.metadata["convo_text"],
         )
         for match in query_result.matches
-        if match.score >= min_score
+        if match.score >= min_score and not post_is_deleted(match.id)
     ]
 
 
@@ -167,6 +167,11 @@ def get_top_posts():
 
 def get_post_by_id(post_id):
     return reddit.submission(id=post_id)
+
+
+def post_is_deleted(post_id):
+    submission = get_post_by_id(post_id)
+    return submission.author is None and not submission.is_robot_indexable
 
 
 def apply_annotation_code(
@@ -285,6 +290,7 @@ def post_comment_image(
     elo_left,
     elo_right,
     opening,
+    similar_conversations,
     evaluation,
     best_continuation,
 ):
@@ -563,6 +569,46 @@ def post_comment_image(
             page.keyboard.type("Megablunder Monday!", delay=5)
             page.wait_for_timeout(50)
             page.keyboard.press("Enter")
+
+        if similar_conversations:
+            page.keyboard.type("Similar Games:", delay=5)
+            page.wait_for_timeout(50)
+            page.keyboard.press("Enter")
+            for i, (post_id, score, _) in enumerate(similar_conversations, start=1):
+                page.keyboard.type(f"{i}. ", delay=5)
+
+                link_button = page.locator('button:has(svg[icon-name="link-outline"])')
+                link_button.wait_for(state="visible", timeout=5000)
+                link_button.scroll_into_view_if_needed()
+                page.wait_for_timeout(100)
+                link_button.click()
+
+                page.wait_for_timeout(100)
+
+                page.keyboard.press("Tab")
+                page.wait_for_timeout(100)
+                page.keyboard.type(f"{get_post_by_id(post_id).title}", delay=5)
+                page.wait_for_timeout(100)
+                page.keyboard.press("Tab")
+                page.wait_for_timeout(100)
+                page.keyboard.type(
+                    f"https://www.reddit.com/r/TextingTheory/{post_id}/",
+                    delay=5,
+                )
+
+                save_link_button = page.get_by_test_id("btn-save-link")
+                save_link_button.wait_for(state="visible", timeout=5000)
+                save_link_button.scroll_into_view_if_needed()
+                page.wait_for_timeout(100)
+                save_link_button.click()
+
+                page.wait_for_timeout(50)
+
+                page.keyboard.type(f" ({score:.1%})", delay=5)
+
+                page.wait_for_timeout(50)
+
+                page.keyboard.press("Enter")
 
         link_button = page.locator('button:has(svg[icon-name="link-outline"])')
         link_button.wait_for(state="visible", timeout=5000)
@@ -1060,6 +1106,7 @@ def handle_new_posts(post_id=None):
                     elo_left,
                     elo_right,
                     data["opening"],
+                    similar_conversations,
                     data.get("evaluation"),
                     None,
                 )
