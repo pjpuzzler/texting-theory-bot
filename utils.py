@@ -640,7 +640,7 @@ def post_comment_image(
 
         page.wait_for_timeout(50)
 
-        page.keyboard.press("Enter")
+        page.keyboard.type(" | ", delay=5)
 
         page.wait_for_timeout(50)
 
@@ -671,7 +671,7 @@ def post_comment_image(
 
         page.wait_for_timeout(50)
 
-        page.keyboard.press("Enter")
+        page.keyboard.type(" | ", delay=5)
 
         page.wait_for_timeout(50)
 
@@ -702,9 +702,7 @@ def post_comment_image(
 
         page.wait_for_timeout(100)
 
-        page.keyboard.press("Shift+End")
-        page.keyboard.press("Shift+ArrowUp")
-        page.keyboard.press("Shift+ArrowUp")
+        page.keyboard.press("Shift+Home")
 
         table_button = page.locator('button:has(svg[icon-name="superscript-outline"])')
         table_button.wait_for(state="visible", timeout=5000)
