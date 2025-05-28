@@ -612,6 +612,8 @@ def post_comment_image(
 
                 page.keyboard.press("Enter")
 
+        page.keyboard.press("Enter")
+
         link_button = page.locator('button:has(svg[icon-name="link-outline"])')
         link_button.wait_for(state="visible", timeout=5000)
         link_button.scroll_into_view_if_needed()
@@ -685,7 +687,7 @@ def post_comment_image(
 
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
-        page.keyboard.type("!annotate command", delay=5)
+        page.keyboard.type("!annotate", delay=5)
         page.wait_for_timeout(100)
         page.keyboard.press("Tab")
         page.wait_for_timeout(100)
