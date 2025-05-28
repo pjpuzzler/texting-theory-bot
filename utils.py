@@ -66,6 +66,20 @@ def pinecone_insert(post_id, embedding, convo_text):
     print(f"Uploaded vector for {post_id}")
 
 
+def find_similar_conversations(embedding, top_k=5, min_score=0.75):
+    query_result = index.query(vector=embedding, top_k=top_k, include_metadata=True)
+
+    return [
+        (
+            match.id,
+            match.score,
+            match.metadata["convo_text"],
+        )
+        for match in query_result.matches
+        if match.score >= min_score
+    ]
+
+
 STORAGE_FILE = "reddit_storage.json"
 
 CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
@@ -1025,6 +1039,18 @@ def handle_new_posts(post_id=None):
                     print("Already analyzed")
                     continue
 
+                convo_text = get_convo_str(msgs)
+                embedding = get_embedding(convo_text)
+
+                similar_conversations = find_similar_conversations(embedding)
+                if similar_conversations:
+                    print("Similar conversations found:")
+                    for i, (post_id, score, convo_text) in enumerate(
+                        similar_conversations, start=1
+                    ):
+                        print(f"#{i}: post:{post_id} (score {score:.2f})")
+                        print(convo_text[:100])
+
                 post_comment_image(
                     post.id,
                     out_path,
@@ -1039,9 +1065,6 @@ def handle_new_posts(post_id=None):
                 )
 
                 store_post_analysis_json(post.id, data)
-
-                convo_text = get_convo_str(msgs)
-                embedding = get_embedding(convo_text)
                 pinecone_insert(post.id, embedding, convo_text)
 
                 # img_url = upload_image_to_imgur(out_path)
