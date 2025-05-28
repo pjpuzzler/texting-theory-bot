@@ -638,6 +638,18 @@ def post_comment_image(
         page.wait_for_timeout(100)
         save_link_button.click()
 
+        page.wait_for_timeout(100)
+
+        page.keyboard.press("Shift+ArrowUp")
+        page.keyboard.press("Shift+ArrowUp")
+        page.keyboard.press("Shift+ArrowUp")
+
+        table_button = page.locator('button:has(svg[icon-name="superscript-outline"])')
+        table_button.wait_for(state="visible", timeout=5000)
+        table_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(250)
+        table_button.click()
+
         comment_submit = page.locator('button[slot="submit-button"][type="submit"]')
         comment_submit.wait_for(state="visible", timeout=10000)
         comment_submit.scroll_into_view_if_needed()
