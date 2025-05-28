@@ -66,7 +66,7 @@ def pinecone_insert(post_id, embedding, convo_text):
     print(f"Uploaded vector for {post_id}")
 
 
-def find_similar_conversations(embedding, cur_post_id, top_k=5, min_score=0.8, max=3):
+def find_similar_conversations(embedding, cur_post_id, top_k=5, min_score=0.833, max=3):
     query_result = index.query(vector=embedding, top_k=top_k, include_metadata=True)
 
     return [
