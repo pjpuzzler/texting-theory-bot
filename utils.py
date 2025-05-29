@@ -612,7 +612,7 @@ def post_comment_image(
 
                 page.keyboard.press("Enter")
 
-        page.keyboard.press("Enter")
+        # page.keyboard.press("Enter")
 
         link_button = page.locator('button:has(svg[icon-name="link-outline"])')
         link_button.wait_for(state="visible", timeout=5000)
