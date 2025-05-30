@@ -295,6 +295,7 @@ def post_comment_image(
     similar_conversations,
     evaluation,
     best_continuation,
+    summary,
 ):
     counts = {c: [0, 0] for c in HUMANIZED_ORDER}
     has_message = [False, False]
@@ -345,6 +346,19 @@ def post_comment_image(
         page.wait_for_timeout(100)
 
         page.keyboard.type("✪ Game Review", delay=10)
+        page.keyboard.press("Enter")
+
+        page.wait_for_timeout(50)
+
+        bold_button = page.locator('button:has(svg[icon-name="bold-outline"])')
+        bold_button.wait_for(state="visible", timeout=5000)
+        bold_button.scroll_into_view_if_needed()
+        page.wait_for_timeout(100)
+        bold_button.click()
+
+        page.wait_for_timeout(100)
+
+        page.keyboard.type(summary, delay=10)
         page.keyboard.press("Enter")
 
         page.wait_for_timeout(50)
@@ -1111,6 +1125,7 @@ def handle_new_posts(post_id=None):
                     similar_conversations,
                     data.get("evaluation"),
                     None,
+                    data["chess_summary"],
                 )
 
                 store_post_analysis_json(post.id, data)
