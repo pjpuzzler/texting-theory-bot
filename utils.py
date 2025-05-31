@@ -1125,7 +1125,7 @@ def handle_new_posts(post_id=None):
                     similar_conversations,
                     data.get("evaluation"),
                     None,
-                    data["chess_summary"],
+                    data["summary_content"],
                 )
 
                 store_post_analysis_json(post.id, data)
