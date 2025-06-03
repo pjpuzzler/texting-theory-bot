@@ -1074,7 +1074,15 @@ def handle_new_posts(post_id=None):
             out_path = os.path.join(tmpdir, "out.jpg")
             # stitch_images_vertically(input_paths, stitched)
             print(f"Analyzing post with title: {post.title}")
-            data = call_llm_on_image(input_paths, post.title, post.selftext)
+            for attempt in range(2):
+                try:
+                    data = call_llm_on_image(input_paths, post.title, post.selftext)
+                    break
+                except Exception as e:
+                    print(
+                        f"Call llm attempt {attempt + 1} failed due to unexpected error: {e}"
+                    )
+                    time.sleep(5)
 
             if data.get("is_convo") is False:
                 print("Not a conversation, skipping")
@@ -1113,20 +1121,36 @@ def handle_new_posts(post_id=None):
                         print(f"#{i}: post:{post_id} (score {score:.2f})")
                         print(convo_text[:100])
 
-                post_comment_image(
-                    post.id,
-                    out_path,
-                    msgs,
-                    None if color_data_left is None else color_data_left["label"],
-                    None if color_data_right is None else color_data_right["label"],
-                    elo_left,
-                    elo_right,
-                    data["opening"],
-                    similar_conversations,
-                    data.get("evaluation"),
-                    None,
-                    data["summary_content"],
-                )
+                for attempt in range(2):
+                    try:
+                        post_comment_image(
+                            post.id,
+                            out_path,
+                            msgs,
+                            (
+                                None
+                                if color_data_left is None
+                                else color_data_left["label"]
+                            ),
+                            (
+                                None
+                                if color_data_right is None
+                                else color_data_right["label"]
+                            ),
+                            elo_left,
+                            elo_right,
+                            data["opening"],
+                            similar_conversations,
+                            data.get("evaluation"),
+                            None,
+                            data["summary_content"],
+                        )
+                        break
+                    except Exception as e:
+                        print(
+                            f"Post comment image attempt {attempt + 1} failed due to unexpected error: {e}"
+                        )
+                        time.sleep(5)
 
                 store_post_analysis_json(post.id, data)
                 pinecone_insert(post.id, embedding, convo_text)
