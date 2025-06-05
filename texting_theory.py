@@ -116,7 +116,7 @@ def call_llm_on_image(image_paths: list[str], title: str, body: str) -> dict:
         contents=contents,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT + extra,
-            temperature=0.4,
+            temperature=0.01,
             # top_k=1.0,
             seed=63,
             thinking_config=types.ThinkingConfig(thinking_budget=24576),
