@@ -1082,7 +1082,7 @@ def handle_new_posts(post_id=None):
                     print(
                         f"Call llm attempt {attempt + 1} failed due to unexpected error: {e}"
                     )
-                    time.sleep(5)
+                    time.sleep(15)
 
             if data.get("is_convo") is False:
                 print("Not a conversation, skipping")
@@ -1150,7 +1150,7 @@ def handle_new_posts(post_id=None):
                         print(
                             f"Post comment image attempt {attempt + 1} failed due to unexpected error: {e}"
                         )
-                        time.sleep(5)
+                        time.sleep(15)
 
                 store_post_analysis_json(post.id, data)
                 pinecone_insert(post.id, embedding, convo_text)
