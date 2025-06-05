@@ -1143,7 +1143,7 @@ def handle_new_posts(post_id=None):
                             similar_conversations,
                             data.get("evaluation"),
                             None,
-                            data["summary_content"],
+                            data["coach_insight"],
                         )
                         break
                     except Exception as e:
