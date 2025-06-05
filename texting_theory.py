@@ -111,8 +111,8 @@ def call_llm_on_image(image_paths: list[str], title: str, body: str) -> dict:
     )
 
     response = client.models.generate_content(
-        # model="gemini-2.5-pro-exp-03-25",
-        model="gemini-2.5-flash-preview-05-20",
+        model="gemini-2.5-pro-exp-03-25",
+        # model="gemini-2.5-flash-preview-05-20",
         contents=contents,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT + extra,
