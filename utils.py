@@ -26,7 +26,7 @@ reddit = praw.Reddit(
     client_secret=os.environ["REDDIT_SECRET"],
     username=os.environ["REDDIT_USERNAME"],
     password=os.environ["REDDIT_PASSWORD"],
-    user_agent="texting-theory-replit/0.2",
+    user_agent="texting-theory-bot",
 )
 
 
